@@ -1,0 +1,1 @@
+g++ -DNO_MODULES -o IBDSim lattice_sampling.cpp -O3
