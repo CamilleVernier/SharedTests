@@ -9,7 +9,7 @@ IBDSim_wrapper<-function(log10theta,
                  nloc=20, # number of loci
                  sampleSize=10, # number of individuals to simulate
                  mu=5e-2, # mutation rate
-                 execName="./IBDSim"){ # executable name
+                 execName=IBDSimExec){ # executable name
   #conversion from the scaled parameters:
   a <- 10^log10a
   N0<-(10^log10theta)/mu

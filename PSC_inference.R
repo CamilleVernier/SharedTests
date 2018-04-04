@@ -25,18 +25,19 @@
 library(Infusion)
 library(caret)
 
-setwd(dir = "/home/vernierc/Documents/Logiciels/Nimbus2000/")
-
-# We load a function to run PSC simulations and return the 6 summary 
-# statistics used in this study:
-source("PSC_simulation.R") 
-#IBDSimExec<-"./ibdsimV2.0-win-i386.exe" #IBDsim executable if ran on Windows
+setwd("/Users/raph/Documents/Taf/EtudiantsPostdocVisiteurs+Stages+Theses/_CamilleVernier/GitHub/SharedTests/") #pour Raph
 
 # If the user wants to run this script on a Linux platform, the IBDsim sources
 # must be compiled thanks to the script "compile.sh" provided with the sources
 # on IBDsim website.
 # The g++ compiler must be installed on the user's system.
-IBDSimExec<-"./IBDSim" # if ran on Linux
+IBDSimExec<<-"./IBDSimMac" # if ran on Linux
+
+
+# We load a function to run PSC simulations and return the 6 summary 
+# statistics used in this study:
+source("PSC_simulation.R") 
+#IBDSimExec<-"./ibdsimV2.0-win-i386.exe" #IBDsim executable if ran on Windows
 
 
 # We first define the parameter grid.
@@ -54,7 +55,7 @@ sobs <- IBDSim_wrapper(log10theta=1,log10a =-1,log10tau=-2)
 # Note: To avoid these computationnaly intensive first steps, 
 # an initial set of projected summary statistics has been provided
 # (you can skip the next lines and load the simulations l.68)
-simuls <- add_simulation(NULL,Simulate="IBDSim_wrapper",par.grid=parsp)# nRealizations = 1
+simuls <- add_simulation(NULL,Simulate="IBDSim_wrapper",par.grid=parsp,nRealizations=10, verbose=FALSE)# nRealizations = 1
 
 # We project the summary statistics with neural networks.
 # Statistics to be projected:
