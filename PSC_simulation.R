@@ -9,17 +9,21 @@ IBDSim_wrapper<-function(log10theta,
                  nloc=20, # number of loci
                  sampleSize=10, # number of individuals to simulate
                  mu=5e-2, # mutation rate
-                 execName=IBDSimExec){ # executable name
+                 execName="./IBDSim"){ # executable name
   #conversion from the scaled parameters:
   a <- 10^log10a
   N0<-(10^log10theta)/mu
   t<-(10^log10tau)*N0
+  
+  Seed <- 1234567 + sample(1:10000, 1)
   
   # we write the input file for IBDsim:
   write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
                     Run_Number=",nsim,"
                     Migraine_Settings=F
                     Ploidy=Diploid
+                    Random_Seeds=",Seed,"
+
                     %%%%% MARKERS PARAMETER S%%%%%%%%%%%%%%%
                     Locus_Number=",nloc,"
                     Mutation_Rate=",format(mu, scientific = FALSE),"
@@ -64,4 +68,20 @@ IBDSim_wrapper<-function(log10theta,
 
   dat<-unlist(dat) # required to be read by Infusion
   return(dat) # returns the 6 summary statistics
+}
+
+get_os <- function(){
+  sysinf <- Sys.info()
+  if (!is.null(sysinf)){
+    os <- sysinf['sysname']
+    if (os == 'Darwin')
+      os <- "osx"
+  } else { ## mystery machine
+    os <- .Platform$OS.type
+    if (grepl("^darwin", R.version$os))
+      os <- "osx"
+    if (grepl("linux-gnu", R.version$os))
+      os <- "linux"
+  }
+  tolower(os)
 }
