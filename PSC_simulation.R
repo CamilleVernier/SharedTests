@@ -55,7 +55,7 @@ IBDSim_wrapper<-function(log10theta,
   
   # We call IBDsim through the system command, 
   # it will read the "IbdSettings.txt" file and run the simulations:
-  system(execName)
+  system(execName,ignore.stdout=TRUE,ignore.stderr=TRUE)
   
   # We then load the simulated summary statistics and only keep the 6 used in this study:
   sumstats<-read.table("Iterative_Statistics_postdisp_PerLocus.txt",sep="",skip=1)
