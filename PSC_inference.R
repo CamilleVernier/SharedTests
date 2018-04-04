@@ -25,19 +25,23 @@
 library(Infusion)
 library(caret)
 
+setwd(dir = "/home/vernierc/Documents/GitCamille/SharedTests/")
 setwd("/Users/raph/Documents/Taf/EtudiantsPostdocVisiteurs+Stages+Theses/_CamilleVernier/GitHub/SharedTests/") #pour Raph
-
-# If the user wants to run this script on a Linux platform, the IBDsim sources
-# must be compiled thanks to the script "compile.sh" provided with the sources
-# on IBDsim website.
-# The g++ compiler must be installed on the user's system.
-IBDSimExec<<-"./IBDSimMac" # if ran on Linux
-
 
 # We load a function to run PSC simulations and return the 6 summary 
 # statistics used in this study:
 source("PSC_simulation.R") 
 #IBDSimExec<-"./ibdsimV2.0-win-i386.exe" #IBDsim executable if ran on Windows
+
+# If the user wants to run this script on a Linux platform, the IBDsim sources
+# must be compiled thanks to the script "compile.sh" provided with the sources
+# on IBDsim website.
+# The g++ compiler must be installed on the user's system.
+if(get_os()=="linux") {
+  IBDSimExec<-"./IBDSim"
+}  else if(get_os()=="osx") {
+    IBDSimExec<-"./IBDSimMac"
+    } else {IBDSimExec<-"./ibdsimv2.0_Win7.exe"}
 
 
 # We first define the parameter grid.
@@ -45,7 +49,7 @@ source("PSC_simulation.R")
 # desired for the first iteration (here, 100).
 parsp <- init_grid(lower=c(log10theta=-1,log10a=-3,log10tau=-4),
                    upper=c(log10theta=1.5,log10a=3,log10tau=1),
-                   nUnique=100)
+                   nUnique=50)
 
 # We compute a pseudo-observed set of summary statistics with
 # with arbitrary parameters values, e.g. theta = 1, a = 1, tau = -1
@@ -55,7 +59,7 @@ sobs <- IBDSim_wrapper(log10theta=1,log10a =-1,log10tau=-2)
 # Note: To avoid these computationnaly intensive first steps, 
 # an initial set of projected summary statistics has been provided
 # (you can skip the next lines and load the simulations l.68)
-simuls <- add_simulation(NULL,Simulate="IBDSim_wrapper",par.grid=parsp,nRealizations=10, verbose=FALSE)# nRealizations = 1
+simuls <- add_simulation(NULL,Simulate="IBDSim_wrapper",par.grid=parsp,nRealizations=20)# nRealizations = 1
 
 # We project the summary statistics with neural networks.
 # Statistics to be projected:
@@ -69,7 +73,7 @@ tauproj <- project("log10tau",stats=allstats,data=simuls,method="neuralNet")
 corrSimuls <- project(simuls,projectors=list("THETA"=thetaproj,"A"=aproj,"TAU"=tauproj))
 corrSobs <- project(sobs,projectors=list("THETA"=thetaproj,"A"=aproj,"TAU"=tauproj))
 
-# load("PSC_simulations.rda") # loads the projected summary statistics
+load("PSC_simulations.rda") # loads the projected summary statistics
 # We then infer the summary-likelihood surface:
 densv <- infer_logLs(corrSimuls,stat.obs=corrSobs)
 slik <- infer_surface(densv)
