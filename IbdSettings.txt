@@ -1,0 +1,32 @@
+%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
+                    Run_Number=1
+                    Migraine_Settings=F
+                    Ploidy=Diploid
+                    Random_Seeds=1240106
+
+                    %%%%% MARKERS PARAMETER S%%%%%%%%%%%%%%%
+                    Locus_Number=20
+                    Mutation_Rate=0.05
+                    Mutation_Model=GSM
+                    Allelic_Upper_Bound=200
+                    %%%%%%%% DEMOGRAPHIC OPTIONS %%%%%%%%%%%%%
+                    %% LATTICE
+                    Lattice_SizeX=1
+                    Lattice_SizeY=1
+                    Ind_Per_Pop=49749.721368991
+                    %% SAMPLE
+                    Sample_SizeX=1
+                    Sample_SizeY=1
+                    Min_Sample_CoordinateX=1
+                    Min_Sample_CoordinateY=1
+                    Ind_Per_Pop_Sampled=10
+                    %% DISPERSAL
+                    Dispersal_Distribution=b
+                    TotalEmigrationRate=0
+                    Continuous_Deme_Size_Variation=Exponential
+
+                    NewDemographicPhaseAt=1299.71761556856
+                    Continuous_Deme_Size_Variation=None
+                    Ind_Per_Pop=330368175
+                    Genepop=false
+                    DiagnosticTables=[Hexp,Fis,Allelic_Variance,Iterative_Statistics]
