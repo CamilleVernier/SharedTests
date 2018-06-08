@@ -1,26 +1,5 @@
 ### Inference with the summary likelihood method 
-### under a population size change (PSC) model.
-###
-### Alexandre Gouy - alexandre.gouy@iee.unibe.ch
-###
-### This script allows to perform simulations using the software 
-### IBDsim and to infer the model parameters using summary likelihood
 
-# Required: this R script, "PSC_simulation.R", and
-# the IBDsim sources which can be found here: 
-# http://www1.montpellier.inra.fr/CBGP/software/ibdsim/download.html
-# (Leblois et al. 2009 Mol. Ecol. Resources)
-
-# Important note:
-# This script is designed to perform one simulation at each call of IBDsim,
-# which is not optimal in terms of computation times. In our study, 
-# to save computation time, we generated the whole distribution of 
-# summary statistics with one call of IBDsim (i.e. 1000 simulations
-# for one set of parameters). But this procedure involves manual 
-# steps, especially during the iteration procedure, to project and 
-# add the new summary statistics.
-# Therefore, we preferred to provide a script which is functional 
-# for any user, even if it is substantially slower.
 
 rm(list = ls())
 options(error=recover) 
@@ -36,16 +15,16 @@ deb <- Sys.time()
 # We load a function to run PSC simulations and return the 6 summary 
 # statistics used in this study:
 source("PSC_simulation_c.R") 
-nbcores <- 20
-gr <- 300
-nR <- 1000
+nbcores <- 25
+gr <- 100
+nR <- 500
 n_loc=40 # number of loci
 smplsize=100 # number of individuals to simulate
 Mu=5e-2
 #Expansion
-log10thetaOBS <- - 1.5
-log10thetaancOBS <- 1
-log10tauOBS <- -0.2
+log10thetaOBS <- -0.398
+log10thetaancOBS <- 1.3
+log10tauOBS <- 0.097 
 #IBDSimExec<-"./ibdsimV2.0-win-i386.exe" #IBDsim executable if ran on Windows
 
 # If the user wants to run this script on a Linux platform, the IBDsim sources
@@ -79,8 +58,8 @@ log10thetaOBS
 log10thetaancOBS
 log10tauOBS
 
-gr_theta <- c(-3, 2)
-gr_thetaanc <- c(-1, 3)
+gr_theta <- c(-2.5, 1.5)
+gr_thetaanc <- c(0, 3)
 gr_tau <- c(-2,2)
 parsp <- init_grid(lower=c(log10theta=gr_theta[1],log10thetaanc=gr_thetaanc[1],log10tau=gr_tau[1]),
                    upper=c(log10theta=gr_theta[2],log10thetaanc=gr_thetaanc[2],log10tau=gr_tau[2]),
@@ -116,7 +95,8 @@ par(mfrow=c(1, 1))
 par(op) #et a la fin on remet "par" comme avant
 
 
-sobs <- IBDSim_wrapper(log10theta=log10thetaOBS,log10thetaanc =log10thetaancOBS,log10tau=log10tauOBS, mu = Mu, sampleSize = smplsize, nloc=n_loc,execName=IBDSimExec)
+sobs <- IBDSim_wrapper(log10theta=log10thetaOBS,log10thetaanc =log10thetaancOBS,log10tau=log10tauOBS, mu = Mu, 
+                       sampleSize = smplsize, nloc=n_loc,execName=IBDSimExec)
 sobs
 
 message("OBS: Nact=",10^log10thetaOBS/Mu,
@@ -148,36 +128,10 @@ slik <- infer_surface(densv)
 slik <- MSL(slik)
 plot(slik, filled=TRUE) # seems to be valid ony for analyses with 2 parameters
 
-
-# We iterate to improve parameter estimation:
-nIterations <- 3
-ntimes_iter <- 1
-nIterations_total <- ntimes_iter*nIterations
-for (j in 1:ntimes_iter) 
-{
-  for(i in 1:nIterations) 
-    {
-  name_slik <- paste("slik", i, sep="")
-  assign(name_slik, refine(slik, nb_cores=7))
-    }
-}
-
-# Sauvegarder slik tous les 3 refine
-
-# The slik object contains the ML estimates and 95% CIs:
-summary(slik)
-
 # We can also get the x% CIs (here, 90% CIs):
-confint_theta <- confint(slik,"log10theta",level=0.9)
-confint_thetaanc <- confint(slik,"log10thetaanc",level=0.9)
-confint_tau <- confint(slik,"log10tau",level=0.9)
-
-
-########################################################"
-
-# Calcul durée du script
-fin <- Sys.time()
-duree <- fin - deb
+confint_theta0 <- confint(slik,"log10theta",level=0.9)
+confint_thetaanc0 <- confint(slik,"log10thetaanc",level=0.9)
+confint_tau0 <- confint(slik,"log10tau",level=0.9)
 
 # Type de simulation constraction, expansion, constant)
 name  <- NULL
@@ -190,46 +144,154 @@ if (log10thetaancOBS>log10thetaOBS)
 }
 
 
-setwd("/work/cvernier/")
-exist <- exists("slik")
 
-# Classement de la table selon si slik a fonctionné ou non
-if (exist == "TRUE")
+exist <- exists("slik")
+exist
+
+
+# Test grille
+if (log10thetaOBS <= gr_theta[1]+1 | log10thetaOBS >= gr_theta[2]-1 
+    | log10thetaancOBS <= gr_thetaanc[1]+1 | log10thetaancOBS >= gr_thetaanc[2]-1 
+    |log10tauOBS <= gr_tau[1]+1 | log10tauOBS >= gr_tau[2]-1) 
 {
-  chemin <- "/work/cvernier/ok/"
+  war_gr <- "Grille mal définie"
+  wg <- "gm"
 }else{
-  chemin <- "/work/cvernier/bug/"
+  war_gr <- "Grille OK"
+  wg <- "go"
 }
 
-# Sauvegarde données Rdata
-save.image(paste (chemin, 
-                  name, "log10theta =",log10thetaOBS, "log10thetaanc =", log10thetaancOBS, "log10tau =", log10tauOBS, 
-                  "taille grille =", gr,"nRealizations =", nR, "nloc =", n_loc, "smplsize =", smplsize, "mu =", Mu, 
-                  deb,".RData", sep=" "))
+
+# Classement de la table selon si slik a fonctionné ou non et sleon la grille
+if (exist == "TRUE")
+{
+  if (war_gr == "Grille OK") 
+  {
+    chemin <- "/work/cvernier/ok/"
+  }else{
+    chemin <- "/work/cvernier/bug/"
+  }
+  
+}else{
+  chemin <- "/work/cvernier/bug/"
+  slik <- matrix(0, nrow = 8, ncol=1)
+  confint_tau <- 0
+  confint_tau$lowerpar <- 0
+  confint_tau$lowerpar[3] <-NA
+  confint_tau$upperpar[3] <-NA
+  confint_theta <- 0
+  confint_theta$lowerpar <- 0
+  confint_theta$lowerpar[1] <- NA  
+  confint_theta$upperpar[1] <- NA
+  confint_thetaanc <- 0
+  confint_thetaanc$lowerpar <- 0
+  confint_thetaanc$lowerpar[2] <-NA
+  confint_thetaanc$upperpar[2] <-NA
+}
 
 
-# Sauvegarde des paramètres dans un fichier txt
-dat <- capture.output(slik)
+
+
+# We iterate to improve parameter estimation:
+nIterations <- 3
+ntimes_iter <- 1
+nIterations_total <- ntimes_iter*nIterations
+slik0 <- slik
+out <- capture.output(summary(slik0))
+
+#########################################################""
 sobs_dat <- capture.output(sobs)
-write(paste(name, "\nlog10theta =",log10thetaOBS, " Bornes theta = [", gr_theta[1], ",", gr_theta[2], "]", 
+file_name <- paste(chemin, name, wg, deb, ".txt", sep="_")
+write(paste(name, deb, "\nlog10theta =",log10thetaOBS, " Bornes theta = [", gr_theta[1], ",", gr_theta[2], "]", 
             "\nlog10thetaanc =", log10thetaancOBS, " Bornes thetaanc =[", gr_thetaanc[1], ",", gr_thetaanc[2], "]", 
-            "\nlog10tau =", log10tauOBS, " Bornes tau =[", gr_tau[1], ",", gr_tau[2], "]",
+            "\nlog10tau =", log10tauOBS, " Bornes tau =[", gr_tau[1], ",", gr_tau[2], "]","\n", war_gr,
             "\n\nOBS: Nact=",10^log10thetaOBS/Mu,"; T=",10^log10tauOBS*10^log10thetaOBS/Mu,"; Nanc=",10^log10thetaancOBS/Mu,
             "\n\n", sobs_dat[1], "\n", sobs_dat[2],
             "\n\nSIM: Nact(min/max)=",paste(min(10^parsp[,1]/Mu),max(10^parsp[,1]/Mu)," "),
             "\nT(min/max)=",paste(min(10^parsp[,3]*10^parsp[,1]/Mu),max(10^parsp[,3]*10^parsp[,1]/Mu)," "),
             "\nNanc(min/max)=",paste(min(10^parsp[,2]/Mu),max(10^parsp[,2]/Mu)," "),
             "\n\ntaille grille =", gr, "\nnRealizations =", nR, "\nnloc =", n_loc, "\nsmplsize =", smplsize, "\nmu =", Mu,  
-            "\nNb refine =", nIterations_total, 
-            "\n\nConfint theta = [", confint_theta$lowerpar[1], ",", confint_theta$upperpar[1], "]",
-            "\nConfint theta anc = [", confint_thetaanc$lowerpar[2], ",", confint_thetaanc$upperpar[2], "]",
-            "\nConfint tau = [", confint_tau$lowerpar[3], ",", confint_tau$upperpar[3], "]",
-            "\n\n", dat[1], "\n", dat[2], "\n", dat[3], "\n", dat[4],"\n", dat[5], "\n", dat[6], "\n", dat[7], "\n", dat[8],
-            "\n","\n", capture.output(duree), "\n", deb, sep=" "), 
-              file=paste(deb,".txt"))
-  
+            "\nNb refine =", nIterations_total, sep="_"), file=file_name)
+cat("\n\n", file=file_name, append=TRUE)
+cat(out, file=file_name, sep="\n", append=TRUE)
+cat("\n\n", file=file_name, append=TRUE)
+#######################################################################
+
+for (j in 1:ntimes_iter)
+{
+  for(i in 1:nIterations)
+    {
+    slik <- refine(slik, nb_cores=nbcores)
+    }
+  name_slik <- paste("slik", j, sep="")
+  name_out <- paste("out", i, sep="")
+  assign(name_slik, slik)
+  test_assign <- assign(name_slik, slik)
+  test_out <- assign(name_out, capture.output(summary(test_assign)))
+  cat(test_out, file=file_name, sep= "\n", append=TRUE)
+  cat("\n\n", file=file_name, sep= "\n", append=TRUE)
+}
+# Sauvegarder slik tous les 3 refine
+
+confint_theta <- confint(slik,"log10theta",level=0.9)
+confint_thetaanc <- confint(slik,"log10thetaanc",level=0.9)
+confint_tau <- confint(slik,"log10tau",level=0.9)
+
+write(paste("Intervalles à 90% :","\nConfint theta = [", confint_theta$lowerpar[1], ",", confint_theta$upperpar[1], "]",
+      "\nConfint theta anc = [", confint_thetaanc$lowerpar[2], ",", confint_thetaanc$upperpar[2], "]",
+      "\nConfint tau = [", confint_tau$lowerpar[3], ",", confint_tau$upperpar[3], "]",sep=" "), file=file_name, append = TRUE)
+# out_conf_the <- capture.output(confint(slik,"log10theta",level=0.9))
+# out_conf_the_anc <- capture.output(summary(confint_thetaanc))
+# out_conf_tau <- capture.output(summary(confint_tau))
+# 
+# cat(out_conf_the, file=file_name, sep= "\n", append=TRUE)
+# cat("\n\n", file=file_name, sep= "\n", append=TRUE)
+# cat(out_conf_the_anc, file=file_name, sep= "\n", append=TRUE)
+# cat("\n\n", file=file_name, sep= "\n", append=TRUE)
+# cat(out_conf_tau, file=file_name, sep= "\n", append=TRUE)
+# cat("\n\n", file=file_name, sep= "\n", append=TRUE)
+
+
+########################################################"
+
+# Calcul durée du script
+fin <- Sys.time()
+duree <- fin - deb
+write(paste("\n", capture.output(duree), "\n", deb), sep="", file=file_name, append=TRUE)
+
+
+# Sauvegarde données Rdata
+save.image(paste (chemin, 
+                  name,"_", wg,"_", deb, "_log10theta_=_",log10thetaOBS, "_log10thetaanc_=_", log10thetaancOBS, "_log10tau_=_", log10tauOBS, 
+                  "_taille_grille_=_", gr,"_nRealizations_=_", nR, "_nloc_=_", n_loc, "_smplsize_=_", smplsize, "_mu_=_", Mu, 
+                  "s.RData", sep=""))
+
+
+# write(slik, file="/home/vernierc/Documents/test_slik.txt")  
+
+#   
+# for (i in 1:ntimes_iter) #ntimes_iter = nombre de slik par groupe de 3
+#   {
+#   name_out <- paste("out", i, sep="")
+#   name_slik_iter <- paste("slik", i, sep="")
+#   assign(name_slik_iter, capture.output())
+#   assign(name_out, name_slik_iter)
+#   cat(, file=file_name, sep= "\n", append=TRUE)
+# }
+# 
+# out <- capture.output(summary(slik0))
+# out2 <- capture.output(summary(slik1))
+# out <- capture.output(summary(slik0))
+# cat(out, file=file_name, sep="\n", append=TRUE)
+# cat("\n\n", file=file_name, append=TRUE)
+# for (i in 1:ntimes_iter)
+# {
+#   name_slik2
+# cat(, file=file_name, sep= "\n", append=TRUE)
+# }
+#   
 # Sauvegarde des graphiques (en cours)
-pdf(file = paste (chemin, deb, "plot.pdf", sep="_"))
+pdf(file = paste (chemin, name, wg, deb, "plot.pdf", sep="_"))
  op <- par(no.readonly = TRUE) # the whole list of settable "par" 's to be reset afterwards
  par(mfrow=c(2, 2)) # les modifs de "par" pour les graphiques ci dessous
   hist(parsp$log10theta, breaks = 20)
