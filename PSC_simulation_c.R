@@ -1,17 +1,14 @@
 ### This script generates the six statistics used in this study from 
 # a PSC model with a given set of parameter, by calling IBDsim from R.
 # IBDsim v2.0 reference: Leblois et al. 2009 MolEcol Ressources
-nloc <- 40
-sampleSize <- 100
-mu <- 5e-2
 
 IBDSim_wrapper<-function(log10theta,
                  log10thetaanc,
                  log10tau,
                  nsim=1,
-                 nloc=nloc, # number of loci
-                 sampleSize=sampleSize, # number of individuals to simulate
-                 mu=mu, # mutation rate
+                 nloc=40, # number of loci
+                 sampleSize=100, # number of individuals to simulate
+                 mu=5e-4, # mutation rate
                  execName="../IBDSim"){ # executable name
   #conversion from the scaled parameters:
   # créer dossier simul + chiffre aleatoire
@@ -86,7 +83,7 @@ IBDSim_wrapper<-function(log10theta,
   
   dat<-sumstats[,(dim(sumstats)[2]-4):dim(sumstats)[2]][c(1,3,5,2)] # H, K, M and varK
   colnames(dat)<-c("H","M","K","VarK") 
-  dat$varH<-apply(sumstats[,21:40],1,var) # variance of H 
+  dat$varH<-apply(sumstats[,(nloc+1):(2*nloc)],1,var) # variance of H ##modifié Hexp?
   hobs<-read.table("Various_Statistics_postdisp.txt",sep="",skip=9,nrows=1)[,5]
   hexp<-read.table("Various_Statistics_postdisp.txt",sep="",skip=10,nrows=1)[,10]
   dat$f<-1-(hobs/hexp) # F  

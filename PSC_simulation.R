@@ -79,7 +79,7 @@ IBDSim_wrapper<-function(log10theta,
   
   dat<-sumstats[,(dim(sumstats)[2]-4):dim(sumstats)[2]][c(1,3,5,2)] # H, K, M and varK
   colnames(dat)<-c("H","M","K","VarK") # H = Hexp ?
-  dat$varH<-apply(sumstats[,21:40],1,var) # variance of H ##modifié Hexp?
+  dat$varH<-apply(sumstats[,(nloc+1):(2*nloc)],1,var) # variance of H ##modifié Hexp?
   hobs<-read.table("Various_Statistics_postdisp.txt",sep="",skip=9,nrows=1)[,5]
   hexp<-read.table("Various_Statistics_postdisp.txt",sep="",skip=10,nrows=1)[,10]
   dat$f<-1-(hobs/hexp) # F  # différent de 0
@@ -92,19 +92,4 @@ IBDSim_wrapper<-function(log10theta,
   return(dat) # returns the 6 summary statistics
 
 }
-# 
-# get_os <- function(){
-#   sysinf <- Sys.info()
-#   if (!is.null(sysinf)){
-#     os <- sysinf['sysname']
-#     if (os == 'Darwin')
-#       os <- "osx"
-#   } else { ## mystery machine
-#     os <- .Platform$OS.type
-#     if (grepl("^darwin", R.version$os))
-#       os <- "osx"
-#     if (grepl("linux-gnu", R.version$os))
-#       os <- "linux"
-#   }
-#   tolower(os)
-# }
+

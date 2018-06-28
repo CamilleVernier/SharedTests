@@ -16,15 +16,15 @@ deb <- Sys.time()
 # statistics used in this study:
 source("PSC_simulation_c.R") 
 nbcores <- 25
-gr <- 100
-nR <- 500
-n_loc=40 # number of loci
-smplsize=100 # number of individuals to simulate
-Mu=5e-2
+gr <- 300
+nR <- 1000
+n_loc=400 # number of loci
+smplsize=200 # number of individuals to simulate
+Mu=5e-4
 #Expansion
-log10thetaOBS <- -0.398
-log10thetaancOBS <- 1.3
-log10tauOBS <- 0.097 
+log10thetaOBS <- 1.5
+log10thetaancOBS <- -1
+log10tauOBS <- -0.2
 #IBDSimExec<-"./ibdsimV2.0-win-i386.exe" #IBDsim executable if ran on Windows
 
 # If the user wants to run this script on a Linux platform, the IBDsim sources
@@ -58,8 +58,8 @@ log10thetaOBS
 log10thetaancOBS
 log10tauOBS
 
-gr_theta <- c(-2.5, 1.5)
-gr_thetaanc <- c(0, 3)
+gr_theta <- c(-1.5, 3.5)
+gr_thetaanc <- c(-1, 3.5)
 gr_tau <- c(-2,2)
 parsp <- init_grid(lower=c(log10theta=gr_theta[1],log10thetaanc=gr_thetaanc[1],log10tau=gr_tau[1]),
                    upper=c(log10theta=gr_theta[2],log10thetaanc=gr_thetaanc[2],log10tau=gr_tau[2]),
@@ -194,7 +194,7 @@ if (exist == "TRUE")
 
 # We iterate to improve parameter estimation:
 nIterations <- 3
-ntimes_iter <- 1
+ntimes_iter <- 2
 nIterations_total <- ntimes_iter*nIterations
 slik0 <- slik
 out <- capture.output(summary(slik0))
