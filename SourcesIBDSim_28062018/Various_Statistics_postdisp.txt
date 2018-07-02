@@ -1,0 +1,22 @@
+run: 28_juin with 1 simulated data files of 20 loci;
+MRCA MOY (total sample) = 6.357465e+04
+MRCA MAX (total sample) = 148629
+Monomorphs (total sample) = 0.000000e+00
+tooManyMut (total sample) = 0.000000e+00
+Mean within-deme identity prob. (within-individual for cont. pop.) Q0= 3.3700000000e-01;
+Mean between-deme identity prob. (within-pop for cont. pop.) Q1= 2.2435353535e-01 
+Mean identity prob. for genes at  0 steps (Qr 0) = 3.3700000000e-01;
+Mean identity prob. for genes at  1 steps (Qr 1) = 3.0937500000e-01;
+Mean identity prob. for genes at  2 steps (Qr 2) = 2.8218750000e-01;
+Mean identity prob. for genes at  3 steps (Qr 3) = 2.5517857143e-01;
+Mean identity prob. for genes at  4 steps (Qr 4) = 2.2687500000e-01;
+Mean identity prob. for genes at  5 steps (Qr 5) = 2.1662500000e-01;
+Mean identity prob. for genes at  6 steps (Qr 6) = 2.1437500000e-01;
+Mean identity prob. for genes at  7 steps (Qr 7) = 1.9625000000e-01;
+Mean identity prob. for genes at  8 steps (Qr 8) = 1.8781250000e-01;
+Mean identity prob. for genes at  9 steps (Qr 9) = 1.9500000000e-01;
+Mean intra-deme coalescence time (total sample) = 24930.66250000
+Mean observed heterozygosity Ho = 6.6300000000e-01
+Mean genetic diversity He (Nei Expected Heterozygosity) and SE = 7.7120500000e-01 (+- 8.4137674661e-02))
+Mean Fst (Fis for cont. pop.) = 1.4522913438e-01 
+Mean Fst (Fis for cont. pop.) calculated as mean_num/mean_denom = 1.4522913438e-01

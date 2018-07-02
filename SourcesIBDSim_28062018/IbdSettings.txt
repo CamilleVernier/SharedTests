@@ -1,0 +1,35 @@
+%%%%%SIMULATION PARAMETERS%%%%%%%%%%%%
+Data_File_Name=28_juin
+Run_Number=1
+Migraine_Settings=F
+
+%%%%%MARKERS PARAMETERS%%%%%%%%%%%%%%%
+Locus_Number=20
+Mutation_Rate=0.0005
+Mutation_Model=SMM
+Allelic_Lower_Bound=1
+Allelic_Upper_Bound=200
+
+Ploidy=Diploid
+
+%%%%%%SAMPLE PARAMETERS%%%%%%%%%%%%%%%
+Sample_SizeX=10
+Sample_SizeY=10
+Min_Sample_CoordinateX=45
+Min_Sample_CoordinateY=45
+Ind_Per_Pop_Sampled=1
+
+%%%%%% VARIOUS COMPUTATION OPTION S%%%%%%% 
+%The code below can be specified in a single line 
+DiagnosticTables=Hexp,Fis,Iterative_Statistics,arRegression,erRegression,Iterative_Identity_Probability
+
+
+%%%%%%%%DEMOGRAPHIC PARAMETERS%%%%%%%%%%%%%			
+Ind_Per_Pop=1
+Lattice_SizeX=100
+Lattice_SizeY=100
+
+Dispersal_Distribution=g
+Geometric_Shape=0.25
+Total_Emigration_Rate=0.45
+MinDistReg=0.000001
