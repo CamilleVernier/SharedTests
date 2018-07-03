@@ -5,7 +5,7 @@ library(caret)
 library(doSNOW)
 
 #setwd(dir = "/work/cvernier/Infusion")
-#setwd(dir="/home/vernierc/Documents/GitCamille/Version locale/")
+setwd(dir="/home/vernierc/Documents/GitCamille/Version locale/")
 
 deb <- Sys.time()
 
@@ -53,7 +53,21 @@ min <- c(45,45)
 gshape <- 0.25
 em_rate <- 0.45
 
-sobs <- IBDSim_wrapper_IBD(lattice=latt,samp=sample,min_sample=min,nloc=n_loc, 
-                            mu=Mu, g_shape = gshape, emig_rate = em_rate, execName="../IBDSim")
 
+gr_gshape <- c(-1, 1)
+gr_emigrate <- c(0, 3)
+
+parsp <- init_grid(lower=c(gr_g=gr_gshape[1],gr_em=gr_emigrate[1]),
+                   upper=c(gr_g=gr_gshape[2],gr_em=gr_emigrate[2]),
+                   nUnique=gr)
+
+
+sobs <- IBDSim_wrapper_IBD(lattice=latt,samp=sample,min_sample=min,nloc=n_loc, 
+                            mu=Mu, g_shape = gshape, m = em_rate, execName="../IBDSim")
 sobs
+
+Infusion.options(nRealizations=c(as_one=500))
+et <- Sys.time()
+simuls <- add_simulation(NULL,Simulate="IBDSim_wrapper_IBD",par.grid=parsp, nRealizations = nR, nb_cores = 7, env=list2env(list(IBDSim_wrapper_IBD=IBDSim_wrapper_IBD)))
+time <- Sys.time()-et
+time

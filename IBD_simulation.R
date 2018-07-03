@@ -6,11 +6,13 @@ IBDSim_wrapper_IBD <-function(
                          lattice=c(100,100),
                          samp=c(10,10),
                          min_sample=c(45,45),
+                         D=1,
                          nsim=1,
                          nloc=40, # number of loci
                          mu=5e-4, # mutation rate
                          g_shape, # geometric shape
-                         emig_rate, # total emigration rate
+                         m, # total emigration rate
+                         dist_max=10,
                          execName="../IBDSim"){ # executable name
 
   curDir<-getwd()
@@ -39,7 +41,7 @@ write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
                     %% LATTICE
                     Lattice_SizeX=",lattice[1],"
                     Lattice_SizeY=",lattice[2],"
-                    Ind_Per_Pop=1
+                    Ind_Per_Pop=",D,"
 
                     %% SAMPLE
                     Sample_SizeX=",samp[1],"
@@ -51,8 +53,9 @@ write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
                     %% DISPERSAL
                     Dispersal_Distribution=g
                     Geometric_Shape=",g_shape,"
-                    Total_Emigration_Rate=",emig_rate,"
+                    Total_Emigration_Rate=",m,"
                     MinDistReg=0.000001
+                    Dist_max=",dist_max,"
                     
                     DiagnosticTables=Hexp,Fis,Iterative_Statistics,arRegression,erRegression,Iterative_Identity_Probability",sep=""),
               file="IbdSettings.txt",quote=FALSE,row.names=FALSE,col.names=FALSE)
@@ -82,11 +85,12 @@ write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
   dat$fis <- 1-(hobs_moy/hexp_moy)
   nballele <- read.table("Iterative_Statistics_postdisp_PerLocus.txt",sep="",skip=1)[,(3*nloc+1):(4*nloc)]  
   dat$var_nballele <- apply(nballele,1,var)
-  data2 <- dat[,c(1,19,2,20,3,21,4,22,5:18)]  
+  dat$Dsigma2 <- D*((m*(1+g_shape))/(1-g_shape)^2)
+  data2 <- dat[,c(1,19,2,20,3,21,4,22,5:18,23)]  
   
   setwd("../")
   unlink(dir1, recursive =TRUE) 
 
-  dat<-unlist(dat) # required to be read by Infusion
-  return(dat)
+  data2<-unlist(data2) # required to be read by Infusion
+  return(data2)
 }
