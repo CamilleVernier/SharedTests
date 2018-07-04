@@ -8,12 +8,12 @@ IBDSim_wrapper_IBD <-function(
                          min_sample=c(5,5),
                          D=1,
                          nsim=1,
-                         nloc=20, # number of loci
+                         nloc=1000, # number of loci
                          mu=5e-4, # mutation rate
                          g_shape, # geometric shape
                          m, # total emigration rate
                          dist_max=10,
-                         execName="../IBDSim"){ # executable name
+                         execName="/Users/raph/Downloads/++Ajeter/Camille/IBDSim"){ # executable name
 
   curDir<-getwd()
   dir1 <- tempfile(pattern = "sim", tmpdir =curDir )
@@ -89,7 +89,7 @@ write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
   data2 <- dat[,c(1,19,2,20,3,21,4,22,15:18,23)]  
   
   setwd("../")
-  unlink(dir1, recursive =TRUE) 
+  #unlink(dir1, recursive =TRUE) 
 
   data2<-unlist(data2) # required to be read by Infusion
   return(data2)
