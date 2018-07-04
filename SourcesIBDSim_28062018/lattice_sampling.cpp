@@ -5675,10 +5675,18 @@ vector<size_t> comptPairDistClass;
 if(ploidy==1) genePairPerIndPair=1;
 double inc=1.0/(1.0*genePairPerIndPair);
 if(predispbool) nSample=2;
-Qb_pair.resize(nSample);Qw_pair.resize(nSample);Qw_ind.resize(nSample);QiOverAllOtherInd.resize(nSample);
+
+    Qb_pair.clear();Qw_pair.clear();Qw_ind.clear();QiOverAllOtherInd.clear();
+    Qb_meanAllPairs.clear();Qw_meanAllInd.clear();Qb_distClass.clear();
+
+    Qb_pair.resize(nSample);Qw_pair.resize(nSample);Qw_ind.resize(nSample);QiOverAllOtherInd.resize(nSample);
 Qb_meanAllPairs.resize(nSample);Qw_meanAllInd.resize(nSample);Qb_distClass.resize(nSample);
 
-Qb_pair_moy.resize(nSample);Qw_pair_moy.resize(nSample);Qw_ind_moy.resize(nSample);QiOverAllOtherInd_moy.resize(nSample);
+    Qb_pair_moy.clear();Qw_pair_moy.clear();Qw_ind_moy.clear();QiOverAllOtherInd_moy.clear();
+    Qb_meanAllPairs_moy.clear();Qw_meanAllInd_moy.clear();Qb_distClass_moy.clear();
+
+    
+    Qb_pair_moy.resize(nSample);Qw_pair_moy.resize(nSample);Qw_ind_moy.resize(nSample);QiOverAllOtherInd_moy.resize(nSample);
 Qb_meanAllPairs_moy.resize(nSample);Qw_meanAllInd_moy.resize(nSample);Qb_distClass_moy.resize(nSample);
 
 for(int a=0;a<nSample;a++){
@@ -6115,7 +6123,7 @@ Qr_mean_moy_glob[a]+=Qr_mean_moy[a];// RL 062018 a virer car ne sert a rien
 Qb_meanAllPairs_moy_glob[a]+=Qb_meanAllPairs_moy[a];
 Qw_meanAllInd_moy_glob[a]+=Qw_meanAllInd_moy[a];
 if(Fisoui && (ploidy==2 || TVpars[0].initialDens>1)) fis_moy_glob[a]+=fis_moy[a];//le bon
-if( dens_sample[a]==1 && ( fabs(Qind_moy_glob[a] - Qw_meanAllInd_moy_glob[a]) > 0.000001) ) {
+if( dens_sample[a]==1 && ( fabs(Qind_moy_glob[a]*repet - Qw_meanAllInd_moy_glob[a]) > 0.000001) ) {
     cout << "Qind_moy_glob[a] != Qw_meanAllInd_moy_glob[a], I exit" << endl;
     if(cinGetOnError) cin.get();
     exit(-1);
