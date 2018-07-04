@@ -1,0 +1,2 @@
+Het_moy     Hexp_moy  fis_moy  nb_allele_moyTotalSample Qr( 0)  Qr( 1)  Qr( 2)  Qr( 3)  Qr( 4)  Qr( 5)  Qr( 6)  Qr( 7)  Qr( 8)  Qr( 9)  ar_slope ar_intercept er_slope er_intercept 
+1.521000e-01   6.890120e-01   7.812152e-01  6.540000e+00   8.479000e-01   3.633056e-01   3.433750e-01   3.343929e-01   3.294583e-01   3.199250e-01   3.154375e-01   3.071250e-01   2.959375e-01   3.032500e-01   1.778199e-01   3.300310e+00   1.513566e-01   1.773771e+00   
