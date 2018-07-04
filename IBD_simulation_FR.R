@@ -8,7 +8,7 @@ IBDSim_wrapper_IBD <-function(
                          min_sample=c(5,5),
                          D=1,
                          nsim=1,
-                         nloc=1000, # number of loci
+                         nloc=20, # number of loci
                          mu=5e-4, # mutation rate
                          g_shape, # geometric shape
                          m, # total emigration rate
@@ -63,7 +63,16 @@ write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
   system(execName, ignore.stdout = TRUE)
   #sumstats_name <- as.matrix(read.table("Iterative_Statistics_postdisp_PerLocus.txt",sep="", nrows=1))
   #sumstats_name2 <- as.vector(sumstats_name[1,])
-  sumstats<-read.table("Iterative_Statistics_postdisp_PerLocus.txt",sep="",skip=1)
+  
+  tries <- 1
+  while (tries<6) {
+    sumstats<-try(read.table("Iterative_Statistics_postdisp_PerLocus.txt",sep="",skip=1))
+    if(inherits(sumstats,"try-error")) {
+      message(paste("Reading simulated summary statistics failed after ", tries, " tries."))
+      system(execName, ignore.stdout = TRUE)
+    } else break
+  }
+  
   dat<-sumstats[,(dim(sumstats)[2]-7-samp[1]):dim(sumstats)[2]] #on prend les stats qui nous intéressent
   #colnames(dat) <- sumstats_name[,(dim(sumstats)[2]-8):dim(sumstats)[2]]
   qnames<-NULL
@@ -89,7 +98,7 @@ write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
   data2 <- dat[,c(1,19,2,20,3,21,4,22,15:18,23)]  
   
   setwd("../")
-  #unlink(dir1, recursive =TRUE) 
+  unlink(dir1, recursive =TRUE) 
 
   data2<-unlist(data2) # required to be read by Infusion
   return(data2)
