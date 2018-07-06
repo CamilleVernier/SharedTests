@@ -1,6 +1,6 @@
-### This script generates the six statistics used in this study from 
-# a PSC model with a given set of parameter, by calling IBDsim from R.
-# IBDsim v2.0 reference: Leblois et al. 2009 MolEcol Ressources
+########################################################################
+###########             IBDSim_Wrapper_IBD              ################     
+########################################################################
 
 IBDSim_wrapper_IBD <-function(
                          lattice=c(40,40),
@@ -10,8 +10,9 @@ IBDSim_wrapper_IBD <-function(
                          nsim=1,
                          nloc=20, # number of loci
                          mu=5e-4, # mutation rate
-                         g_shape=0.25, # geometric shape
-                         m=0.45, # total emigration rate
+                         g_shape=0.575, # geometric shape
+                         m=0.25, # total emigration rate
+                         habitatSize=NULL,
                          dist_max=20,
                          execName="../IBDSim"){ # executable name
 
@@ -164,14 +165,12 @@ IBDSim_wrapper_IBD <-function(
 
 
 ########################################################################
-
 ###########          IBDSim_Wrapper_IBD_log10           ################     
-
 ########################################################################
 
 
 
-IBDSim_wrapper_IBD_log140 <-function(
+IBDSim_wrapper_IBD_log10 <-function(
                             lattice=c(40,40),
                             samp=c(15,15),
                             min_sample=c(15,15),
