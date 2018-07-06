@@ -1,0 +1,6 @@
+1 - Analyses de 100 fichiers simulés avec les mêmes paramètres pour calculer pour chaque paramètre estimé :
+	- biais relatif E( (Estimation-ValeurSimulée) / ValeurSimulée )
+	- variance relative / RMSE
+	- couverture IC/CI (%age des IC qui contiennent la valeur simulée), 
+		voir plus (distribution des pValue des valeurs simulées, test KS, voir avec Raph & FR)
+
