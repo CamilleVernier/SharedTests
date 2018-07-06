@@ -57,8 +57,8 @@ nR <- 1
 # sample <- c(10,10)
 # min <- c(5,5)
 ############################ ECHELLE NON LOG
-gshape <- 0.25
-em_rate <- 0.45
+gshape <- 0.56
+em_rate <- 0.25
 
 
 gr_gshape <- c(0, 1)
@@ -92,6 +92,9 @@ parsp2 <- unique(parsp)
 # parsp2 <- unique(parsp)
 ##############################################"
 
+# En cas de bug, retour au dossier
+# setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
+
 sobs <- IBDSim_wrapper_IBD(execName=IBDSimExec)
 sobs
 
@@ -110,6 +113,7 @@ Rmixmod::plotCluster(slik_j$jointdens,slik_j$logLs,variable1 = "g_shape",variabl
 Infusion.options(nRealizations=c(as_one=nR))
 #Infusion.options(nRealizations=nR)
 
+######################################## ADD SIMULATION
 et <- Sys.time()
 simuls <- add_simulation(NULL,Simulate="IBDSim_wrapper_IBD", par.grid=parsp,nRealizations=c(as_one=nR), nb_cores = nbcores, env=list2env(list(IBDSim_wrapper_IBD=IBDSim_wrapper_IBD)))
 time <- Sys.time()-et
