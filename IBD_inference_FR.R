@@ -19,23 +19,21 @@ if (interactive()) {options(error=recover)} else {
 }
 options(warn=2)
 
-get_os <- function(){
-  sysinf <- Sys.info()
-  if (!is.null(sysinf)){
-    os <- sysinf['sysname']
-    if (os == 'Darwin')
-      os <- "osx"
-  } else {
-    os <- .Platform$OS.type
-    if (grepl("darwin", R.version$os))
-      os <- "osx"
-    if (grepl("linux-gnu", R.version$os))
-      os <- "linux"
-  }
-  tolower(os)
-}
-
-
+# get_os <- function(){
+#   sysinf <- Sys.info()
+#   if (!is.null(sysinf)){
+#     os <- sysinf['sysname']
+#     if (os == 'Darwin')
+#       os <- "osx"
+#   } else {
+#     os <- .Platform$OS.type
+#     if (grepl("darwin", R.version$os))
+#       os <- "osx"
+#     if (grepl("linux-gnu", R.version$os))
+#       os <- "linux"
+#   }
+#   tolower(os)
+# }
 # if(get_os()=="linux") {
 #   IBDSimExec<-"../IBDSim"
 # }  else if(get_os()=="osx") {
@@ -49,19 +47,35 @@ IBDSimExec<-"../IBDSim"
 nbcores <- 6
 gr <- 500
 nR <- 1
-## attentyion a changer ces valeures de parametres comme valeurs par défault dans le wrapper
-n_loc=20 # number of loci
-Mu=5e-3
-latt <- c(20,20)
-sample <- c(10,10)
-min <- c(5,5)
+## attention a changer ces valeures de parametres comme valeurs par défault dans le wrapper
+# n_loc=20 # number of loci
+# Mu=5e-3
+# latt <- c(20,20)
+# sample <- c(10,10)
+# min <- c(5,5)
 
-gshape <- 0.25
-em_rate <- 0.45
+############################ ECHELLE NON LOG
+# gshape <- 0.25
+# em_rate <- 0.45
+# 
+# 
+# gr_gshape <- c(0, 1)
+# gr_emigrate <- c(0, 1)
+# 
+# parsp <- init_grid(lower=c(g_shape=gr_gshape[1],m=gr_emigrate[1]),
+#                    upper=c(g_shape=gr_gshape[2],m=gr_emigrate[2]),
+#                    nUnique=gr)
+# 
+# parsp2 <- unique(parsp)
 
+############################# ECHELLE LOG10
+log10_g_OBS <- log10(0.25)
+log10_m_OBS <- log10(0.45)
+log10_g_OBS
+log10_m_OBS
 
-gr_gshape <- c(0, 1)
-gr_emigrate <- c(0, 1)
+gr_gshape <- c(-2, 0)
+gr_emigrate <- c(-2, 0)
 
 parsp <- init_grid(lower=c(g_shape=gr_gshape[1],m=gr_emigrate[1]),
                    upper=c(g_shape=gr_gshape[2],m=gr_emigrate[2]),
@@ -69,8 +83,7 @@ parsp <- init_grid(lower=c(g_shape=gr_gshape[1],m=gr_emigrate[1]),
 
 parsp2 <- unique(parsp)
 
-sobs <- IBDSim_wrapper_IBD(lattice=latt,samp=sample,min_sample=min,nloc=n_loc, 
-                            mu=Mu, g_shape = gshape, m = em_rate, execName=IBDSimExec,nsim=1)
+sobs <- IBDSim_wrapper_IBD(g_shape = gshape, m = em_rate, execName=IBDSimExec)
 sobs
 
 simtable <- add_reftable(Simulate="IBDSim_wrapper_IBD",par.grid=parsp2, nb_cores=c(param=nbcores))

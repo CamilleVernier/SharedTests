@@ -76,9 +76,8 @@ write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
       Seed <- ( 1234567 + sample(1:10000, 1) );
       
       # we write the input file for IBDsim:
-      
       write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
-                        Run_Number=",nsim,"
+                    Run_Number=",nsim,"
                         Migraine_Settings=F
                         Ploidy=Diploid
                         Random_Seeds=",Seed,"
@@ -110,8 +109,9 @@ write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
                         MinDistReg=0.000001
                         Dist_max=",dist_max,"
                         
-                        DiagnosticTables=Hexp,Fis,Iterative_Statistics,arRegression,erRegression,Iterative_Identity_Probability",sep=""),
-                  file="IbdSettings.txt",quote=FALSE,row.names=FALSE,col.names=FALSE)
+                        DiagnosticTables=Hexp,Fis,Iterative_Statistics,arRegression,erRegression,Iterative_Identity_Probability
+                        noSS=T",sep=""),
+            file="IbdSettings.txt",quote=FALSE,row.names=FALSE,col.names=FALSE)
       system(execName, ignore.stdout = TRUE)
     } else {
       dat<-sumstats[,(dim(sumstats)[2]-7-samp[1]):dim(sumstats)[2]] #on prend les stats qui nous intéressent

@@ -10,8 +10,8 @@ IBDSim_wrapper_IBD <-function(
                          nsim=1,
                          nloc=20, # number of loci
                          mu=5e-3, # mutation rate
-                         g_shape, # geometric shape
-                         m, # total emigration rate
+                         g_shape=0.25, # geometric shape
+                         m=0.45, # total emigration rate
                          dist_max=10,
                          execName="../IBDSim"){ # executable name
 
@@ -25,7 +25,7 @@ IBDSim_wrapper_IBD <-function(
   
   # we write the input file for IBDsim:
   
-write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
+  write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
                     Run_Number=",nsim,"
                     Migraine_Settings=F
                     Ploidy=Diploid
@@ -37,20 +37,20 @@ write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
                     Mutation_Model=GSM
                     Allelic_Upper_Bound=200
                     Min_Allele_Number=2
-
+                    
                     %%%%%%%% DEMOGRAPHIC OPTIONS %%%%%%%%%%%%%
                     %% LATTICE
                     Lattice_SizeX=",lattice[1],"
                     Lattice_SizeY=",lattice[2],"
                     Ind_Per_Pop=",D,"
-
+                    
                     %% SAMPLE
                     Sample_SizeX=",samp[1],"
                     Sample_SizeY=",samp[2],"
                     Min_Sample_CoordinateX=",min_sample[1],"
                     Min_Sample_CoordinateY=",min_sample[2],"
                     Ind_Per_Pop_Sampled=1
-
+                    
                     %% DISPERSAL
                     Dispersal_Distribution=g
                     Geometric_Shape=",g_shape,"
@@ -58,8 +58,9 @@ write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
                     MinDistReg=0.000001
                     Dist_max=",dist_max,"
                     
-                    DiagnosticTables=Hexp,Fis,Iterative_Statistics,arRegression,erRegression,Iterative_Identity_Probability",sep=""),
-              file="IbdSettings.txt",quote=FALSE,row.names=FALSE,col.names=FALSE)
+                    DiagnosticTables=Hexp,Fis,Iterative_Statistics,arRegression,erRegression,Iterative_Identity_Probability
+                    noSS=T",sep=""),
+            file="IbdSettings.txt",quote=FALSE,row.names=FALSE,col.names=FALSE)
   
   system(execName, ignore.stdout = TRUE)
   #sumstats_name <- as.matrix(read.table("Iterative_Statistics_postdisp_PerLocus.txt",sep="", nrows=1))
