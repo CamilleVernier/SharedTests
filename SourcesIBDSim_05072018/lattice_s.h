@@ -94,7 +94,7 @@ std::string convert_binary_format(std::string);
 std::string convert_quartery_format(std::string);
 int seqPairDiff(std::string, std::string);
 double seqPairNucSubDiff(std::string, std::string);
-void entete_fichier_genepop(void);
+void entete_fichier_genepop(int sample);
 void ecriture_fichier_genepop(void);
 void ecriture_fichier_genotypes(void);
 void ecriture_fichier_coordonnees(void);
@@ -137,7 +137,7 @@ extern bool cinGetOnError,pauseGP; //to pause on cerr messages in batchDebug mod
 
 extern std::string fichier_geneland_geno,fichier_geneland_coord,fichier_migrate,fichier_genepop,fichier_stepsim,SettingsFilename,SpecificDensityFilename,EdgeEffect,Genepopfile_extension;//,twoD_disp
 
-extern bool variable_mubool,txt_extensionbool,genepopoui,genepopNoCoordbool,migFilebool,graFilebool,genelandoui,DG2002,AllStates,migrate_oui,migrate_lettre_oui,calculoui,HexpNeioui,Varoui,Fisoui,suiviQ,iterativeStats,noHeader,arRegression,erRegression,moranIRegression,dossier_nbre_allele,Prob_Id_Matrix,calcul_anc,effective_disp,seqStatsOui, const_disp,compareMath,predispbool,Specific_Density_Designbool,groupAllSamplesbool,individualizeAllSamplesbool, random_translation,GlobalDensSpatiallyHeterog,GlobalDispSpatiallyHeterog,migraineSettingsbool,Simple1DProductDispBool,commonSSwInArNumAndDenombool;
+extern bool variable_mubool,txt_extensionbool,genepopoui,genepopNoCoordbool,migFilebool,graFilebool,genelandoui,DG2002,AllStates,migrate_oui,migrate_lettre_oui,calculoui,HexpNeioui,Varoui,Fisoui,suiviQ,iterativeStats,noHeader,arRegression,erRegression,moranIRegression,dossier_nbre_allele,Prob_Id_Matrix,calcul_anc,effective_disp,seqStatsOui, const_disp,compareMath,predispbool,Specific_Density_Designbool,groupAllSamplesbool,individualizeAllSamplesbool, random_translation,GlobalDensSpatiallyHeterog,GlobalDispSpatiallyHeterog,migraineSettingsbool,Simple1DProductDispBool,commonSSwInArNumAndDenombool,noSSbool;
 
 extern int repet,Seeds,n_locus,min_allele,max_mutations,Kmin,Kmax,Kini,MotifSize,ploidy,dim_reseau1,dim_reseau2;
 
@@ -213,12 +213,12 @@ namespace NS_diagnostic_tables {
     extern long long int **cumulEffectiveImmigration, **effectiveImmigration;
     //SS for each sample (i.e. post & pre disp), for each sample pair (pairs of ind or pop), and for each locus, and mean for each ind against all others for er (cf watt et al 2007MolEcol)
     //cf definitions in Rousset(2000)JEB IBD between individuals
-    extern std::vector<std::vector<std::vector<double> > > SSb,SSw,SSb_SumForEachIndOverOthers,Qb_pair,Qw_pair,Qw_ind,QiOverAllOtherInd,Qb_distClass;
+    extern std::vector<std::vector<std::vector<double> > > SSb,SSw,SSb_SumForEachIndOverOthers,Qbi_indPairs,Qwi_indPairs,Qwi_ind,QiOverAllOtherInd,Qbi_distClass;
     //SS & Q moyennes for each sample (i.e. pre & post disp) and for each sample pair (pairs of ind or pop),
-    extern std::vector<std::vector<double> > SSw_SumOverAllPairs,Qb_meanAllPairs,Qw_meanAllInd;
+    extern std::vector<std::vector<double> > SSw_SumOverAllPairs,Qbi_meanAllPairs,Qwi_meanAllInd;
     //SS & Q moyennes, moy=Mean over loci, and moy_glob=mean over repetations (= over data sets)
-    extern std::vector<std::vector<double> > Qb_pair_moy,Qw_pair_moy,Qw_ind_moy,QiOverAllOtherInd_moy,Qb_distClass_moy;
-    extern std::vector<double> Qb_meanAllPairs_moy,Qw_meanAllInd_moy,Qb_meanAllPairs_moy_glob,Qw_meanAllInd_moy_glob;
+    extern std::vector<std::vector<double> > Qbi_indPairs_moy,Qwi_indPairs_moy,Qwi_ind_moy,QiOverAllOtherInd_moy,Qbi_distClass_moy;
+    extern std::vector<double> Qbi_meanAllPairs_moy,Qwi_meanAllInd_moy,Qbi_meanAllPairs_moy_glob,Qwi_meanAllInd_moy_glob;
     //Geographic distance for each sample (i.e. pre & post disp) and for each sample pair (pairs of ind or pop),
     extern std::vector<std::vector<double> > indGeoDist,popGeoDist;
     extern std::vector<double> maxDistSample;//max distance over all sample pairs

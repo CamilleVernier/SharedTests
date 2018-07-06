@@ -131,7 +131,6 @@ void expandParamVector(vector<T> &paramVector, string dispVar) {
 
 //Lecture des paramtres dans fichier
 int read_settings_file(const char filename[]) {
-    string buf,var;
 //stringstream good mostly for string/numbers conversions
     size_t pos;
     int tempo;
@@ -146,11 +145,27 @@ int read_settings_file(const char filename[]) {
         if (cinGetOnError) cin.get();
         exit(-1);
 	} else do {
+        string buf (150,' '),var; // RL 072018 : faut il aussi intialiser var avec (XX,' ') ()
 		getline(settings,buf);
 //        cout << "buf=" << buf << endl;
+        int bufSize=buf.length();
 		if(buf.length()==0) goto nextline;
 		while((buf[0]==' ')||(buf[0]=='\t')||(buf[0]=='\r')) {buf.erase(0,1);}//vire les blancs initiaux
-        while((buf[buf.length()-1]==' ')||(buf[buf.length()-1]=='\t')||(buf[buf.length()-1]=='\r')) {buf.erase(buf.length()-1,buf.length());}//vire les blancs finaux
+        {
+            while(
+                  (buf[bufSize-1]==' ') ||
+                  
+                  (buf[bufSize-1]=='\t') ||
+                  
+                  (buf[bufSize-1]=='\r') ) {
+                
+                    buf.erase(bufSize-1,bufSize);
+                
+                    bufSize=buf.length();
+                
+            }//vire les blancs finaux
+        }
+        
 		pos=std::min(buf.find('='),std::min(buf.find('\t'),buf.length()));
 //		pos=std::min(buf.find('='),buf.length());
         if ((buf[pos])=='=') while (buf[pos-1]==' '||(buf[pos-1]=='\t')) {buf.erase(pos-1,1); pos--;}// vire les blancs et les tabulations avant le =
@@ -959,6 +974,10 @@ cinGetOnError is true at declaration in genepop.cpp but may then be set to false
         }
         if(cmp_nocase_no__(var,"commonSSwInArNumAndDenom")==0) {
             evaluateBool(commonSSwInArNumAndDenombool,buf.substr(pos+1));
+            goto nextline;
+        }
+        if(cmp_nocase_no__(var,"noSS")==0) {
+            evaluateBool(noSSbool,buf.substr(pos+1));
             goto nextline;
         }
 		if(cmp_nocase_no__(var,"Prob_Id_Matrix")==0) {

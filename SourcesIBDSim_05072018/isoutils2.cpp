@@ -162,7 +162,7 @@ delete[] m;
 /*******************************************************************/
 
 /*******************************************************************/
-/*double **dmatrixl(long int nrh, long int nch); // was used for Q1
+/*double **dmatrixl(long int nrh, long int nch); // was used for Qwbdeme_pas
 double **dmatrixl(long int nrh, long int nch)  {
     long int i;
     double **m;
@@ -645,10 +645,10 @@ vector< double > getLinearFit(const vector<double>& X,const vector<double>& Y)
     slope = (X.size() * xySum - xSum * ySum) / (X.size() * xxSum - xSum * xSum);
     intercept = (ySum - slope * xSum) / X.size();
     
-    if(fabs( (slope - slopeLinReg(X,Y)) / slope )> 0.000001) {
+    if( fabs( (slope - slopeLinReg(X,Y) ) / slope ) > 0.000001) {
         cerr << "in getLinearFit(), n=" << X.size() << "  Two slopes are different:" << slope << " " << slopeLinReg(X,Y) <<  endl;
         if (cinGetOnError) cin.get();
-		        exit(-1);
+        exit(-1);
 
     }
     
@@ -669,7 +669,7 @@ double slopeLinReg(const vector<double> & X,const vector< double >& Y) {
     double numerator = 0.0;
     double denominator = 0.0;
     
-    for(int i=0; i<n; ++i){
+    for(size_t i=0; i<n; ++i){
         numerator += (X[i] - avgX) * (Y[i] - avgY);
         denominator += (X[i] - avgX) * (X[i] - avgX);
     }

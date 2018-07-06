@@ -220,6 +220,7 @@ bool  genepopNoCoordbool=false;/*si T n'écrit pas les coordonnées dans les fic
 bool  migFilebool=false;
 bool  graFilebool=false;
 bool  commonSSwInArNumAndDenombool=true;
+bool  noSSbool=false;
 bool  DG2002=false;//1... si 1 ecrit les fichiers DG2002 !! que pour 1 locus!!!!!!!!
 bool  genelandoui=false;/*si true ecrit les fichier geneland*/
 bool  migrate_oui=false,migrate_lettre_oui=false;//si true ecrit les fichiers migrate, si true ecrit des lettres pour les alleles (limitÈ a 36 alleles)
@@ -338,12 +339,12 @@ namespace NS_diagnostic_tables {
     long long int   **effectiveImmigration,**cumulEffectiveImmigration,**effectiveImmigration_moy,**cumulEffectiveImmigration_moy;
     //SS for each sample (i.e. post & pre disp), for each sample pair (pairs of ind or pop), and for each locus
     //cf definitions in Rousset(2000)JEB IBD between individuals
-    vector<vector<vector<double> > > SSb,SSw,SSb_SumForEachIndOverOthers,Qb_pair,Qw_pair,Qw_ind,QiOverAllOtherInd,Qb_distClass;
+    vector<vector<vector<double> > > SSb,SSw,SSb_SumForEachIndOverOthers,Qbi_indPairs,Qwi_indPairs,Qwi_ind,QiOverAllOtherInd,Qbi_distClass;
     //SS moyennes for each sample (i.e. pre & post disp) and for each sample pair (pairs of ind or pop),
-    vector<vector<double> > SSw_SumOverAllPairs,Qb_meanAllPairs,Qw_meanAllInd;
+    vector<vector<double> > SSw_SumOverAllPairs,Qbi_meanAllPairs,Qwi_meanAllInd;
     //SS & Q moyennes, moy=Mean over loci, and moy_glob=mean over repetations (= over data sets)
-    vector<vector<double> > Qb_pair_moy,Qw_pair_moy,Qw_ind_moy,QiOverAllOtherInd_moy,Qb_distClass_moy;
-    vector<double> Qb_meanAllPairs_moy,Qw_meanAllInd_moy,Qb_meanAllPairs_moy_glob,Qw_meanAllInd_moy_glob;
+    vector<vector<double> > Qbi_indPairs_moy,Qwi_indPairs_moy,Qwi_ind_moy,QiOverAllOtherInd_moy,Qbi_distClass_moy;
+    vector<double> Qbi_meanAllPairs_moy,Qwi_meanAllInd_moy,Qbi_meanAllPairs_moy_glob,Qwi_meanAllInd_moy_glob;
     //Geographic distance for each sample (i.e. pre & post disp) and for each sample pair (pairs of ind or pop),
     vector<vector<double> > indGeoDist,popGeoDist;
     vector<double> maxDistSample;//max distance over all sample pairs
@@ -401,12 +402,12 @@ vector<vector<double> >backwardPhilo; //matrix of backward non-immigration rate 
 
 //long int  compteur3;
 int  compteur3;
-vector<double> Qind_moy,Qind_moy_glob,Qr_mean_moy,Qr_mean_moy_glob,hetero_moy,fis_moy_glob,hetero_moy_glob,
+vector<double> Qwind_moy,Qwind_moy_glob,Qr_mean_moy,Qr_mean_moy_glob,hetero_moy,fis_moy_glob,hetero_moy_glob,
                 fis_moy,fis_moy2,fis_moy_denom,fis_moy_numer,fis_moy_denom_glob,fis_moy_numer_glob,
                 HexpNei_moy, HexpNei_moy_glob,HexpNei_moy_glob_var, Var_moy,Var_moy_glob,Var_moy_glob_var,
                 M_moy,M_moy_glob,M_moy_glob_var;
-vector< vector<double> > Q1_moy,Q1_moy_glob,Qind2,hetero,fis,HexpNei,Var,M;
-vector< vector< vector<double> > > Q1,freq;
+vector< vector<double> > Qwbdeme_pas_moy,Qwbdeme_pas_moy_glob,Qwind,hetero,fis,HexpNei,Var,M;
+vector< vector< vector<double> > > Qwbdeme_pas,freq;
 // maximum_allele_number is needed for allocating and initializing freq
 int maximum_allele_number;
 
@@ -557,12 +558,12 @@ cout<<numeric_limits<long long int>::max()<<endl;*/
 
 /*-----Allocation vecteurs/pointeurs utilises pour moyennes tout le long des repetitions---------*/
     if( !(Specific_Sample_Designbool[0] || Specific_Sample_Designbool[1])) {
-        Q1_moy_glob.resize(2);
-        for(int i=0;i<2;i++) Q1_moy_glob[i].resize(/*max(TVpars[0].dimRes1, */max( max(dim_sample1[0],dim_sample2[0]), max(dim_sample1[1],dim_sample2[1])/*)*/),0.0);
+        Qwbdeme_pas_moy_glob.resize(2);
+        for(int i=0;i<2;i++) Qwbdeme_pas_moy_glob[i].resize(/*max(TVpars[0].dimRes1, */max( max(dim_sample1[0],dim_sample2[0]), max(dim_sample1[1],dim_sample2[1])/*)*/),0.0);
         Qr_mean_moy_glob.resize(2,0.0);
-        Qb_meanAllPairs_moy_glob.resize(2,0.0);
-        Qw_meanAllInd_moy_glob.resize(2,0.0);
-        Qind_moy_glob.resize(2,0.0);
+        Qbi_meanAllPairs_moy_glob.resize(2,0.0);
+        Qwi_meanAllInd_moy_glob.resize(2,0.0);
+        Qwind_moy_glob.resize(2,0.0);
     }
     HexpNei_moy_glob.resize(2,0.0);
     HexpNei_moy_glob_var.resize(2,0.0);
@@ -708,20 +709,20 @@ cout<<numeric_limits<long long int>::max()<<endl;*/
         for(int i=0;i<2;i++) Var[i].resize(n_locus,0.0);
         fis.resize(2);
         for(int i=0;i<2;i++) fis[i].resize(n_locus,0.0);
-        Qind2.resize(2);
-        for(int i=0;i<2;i++) Qind2[i].resize(n_locus,0.0);
+        Qwind.resize(2);
+        for(int i=0;i<2;i++) Qwind[i].resize(n_locus,0.0);
         if(!Specific_Sample_Designbool[0] || !Specific_Sample_Designbool[1])
-            Q1.resize(2);
+            Qwbdeme_pas.resize(2);
             for(int i=0;i<2;i++) {
-                Q1[i].resize(n_locus);
+                Qwbdeme_pas[i].resize(n_locus);
                 for(int j=0;j<n_locus;j++)
-                    Q1[i][j].resize( /*max(TVpars[0].dimRes1,*/ max( max(dim_sample1[0],dim_sample2[0]), max(dim_sample1[1],dim_sample2[1]) ) /*)*/);
+                    Qwbdeme_pas[i][j].resize( /*max(TVpars[0].dimRes1,*/ max( max(dim_sample1[0],dim_sample2[0]), max(dim_sample1[1],dim_sample2[1]) ) /*)*/);
             }
         if( !(Specific_Sample_Designbool[0] || Specific_Sample_Designbool[1]) ) {
-            Q1_moy.resize(2);
-            for(int i=0;i<2;i++) Q1_moy[i].resize(/*max(TVpars[0].dimRes1,*/max(max(dim_sample1[0],dim_sample2[0]), max(dim_sample1[1],dim_sample2[1]) /*)*/ ),0.0);
+            Qwbdeme_pas_moy.resize(2);
+            for(int i=0;i<2;i++) Qwbdeme_pas_moy[i].resize(/*max(TVpars[0].dimRes1,*/max(max(dim_sample1[0],dim_sample2[0]), max(dim_sample1[1],dim_sample2[1]) /*)*/ ),0.0);
             Qr_mean_moy.resize(2,0.0);
-            Qind_moy.resize(2,0.0);
+            Qwind_moy.resize(2,0.0);
         }
         HexpNei_moy.resize(2,0.0);
         hetero_moy.resize(2,0.0);
@@ -1212,7 +1213,7 @@ clrscr();*/
         }
         // Computation of various Proba identity, and regressions genet against distance/log
         if(arRegression || erRegression || moranIRegression) {
-            computeSSForFstats();
+            if(!noSSbool) computeSSForFstats();
             computeGeoDist();
             calcul_proba_identite_par_paires_individus();
             computeFstats_ar_er_moranI(commonSSwInArNumAndDenombool);// true if for bool commonSSwInNumAndDenom
@@ -1220,7 +1221,8 @@ clrscr();*/
                 ecriture_fichier_MIG("ar");// true is for individual data, false for pops, RL 062018 remplacer par la stat = ar, er, Fst, FST/(1-Fst),C
                 regression_ar.resize(sampleNb);
                 for(int a=0;a<sampleNb;a++) regression_ar[a].resize(2,0.0);
-                regression_ar=indRegression_ar_er_moranI(minDistReg, Fstat_ar_fromSS,"ar");
+                if(noSSbool) regression_ar=indRegression_ar_er_moranI(minDistReg, Fstat_ar_fromQ,"ar");
+                    else regression_ar=indRegression_ar_er_moranI(minDistReg, Fstat_ar_fromSS,"ar");
             }
             if(erRegression) {
                 ecriture_fichier_MIG("er");// true is for individual data, false for pops, RL 062018 remplacer par la stat = ar, er, Fst, FST/(1-Fst),C
@@ -1270,11 +1272,11 @@ clrscr();*/
 #endif
 /*
         if( !(Specific_Sample_Designbool[0] || Specific_Sample_Designbool[1]) ) {
-            free_dtab3(Q1,2,n_locus);
-            free_dmatrix(Q1_moy,2);
-            free_dmatrix(Qind2,2);
+            free_dtab3(Qwbdeme_pas,2,n_locus);
+            free_dmatrix(Qwbdeme_pas_moy,2);
+            free_dmatrix(Qwind,2);
             free_dvector(Qr_mean_moy);
-            free_dvector(Qind_moy);
+            free_dvector(Qwind_moy);
         }
         free_dvector(HexpNei_moy);
         free_dvector(hetero_moy);
@@ -1306,9 +1308,9 @@ clrscr();*/
 
 /*-----liberation pointeurs utilises sur toutes les repetitions multilocus----------------------*/
 /*    if( !(Specific_Sample_Designbool[0] || Specific_Sample_Designbool[1]) ) {
-        free_dmatrix(Q1_moy_glob,2);
+        free_dmatrix(Qwbdeme_pas_moy_glob,2);
         free_dvector(Qr_mean_moy_glob);
-        free_dvector(Qind_moy_glob);
+        free_dvector(Qwind_moy_glob);
     }
     free_dvector(HexpNei_moy_glob);
     free_dvector(HexpNei_moy_glob_var);
@@ -1661,11 +1663,11 @@ for(int a=0;a<sampleNb;a++) {
     fis_moy_denom_glob[a]=0.0;
     fis_moy_numer_glob[a]=0.0;
     if( !Specific_Sample_Designbool[0]  && !Specific_Sample_Designbool[1]) {
-        for(int j=0;j</*max(TVpars[0].dimRes1,*/max(max(dim_sample1[0],dim_sample2[0]), max(dim_sample1[1],dim_sample2[1]) ) /*)*/;j++) Q1_moy_glob[a][j]=0.0;
+        for(int j=0;j</*max(TVpars[0].dimRes1,*/max(max(dim_sample1[0],dim_sample2[0]), max(dim_sample1[1],dim_sample2[1]) ) /*)*/;j++) Qwbdeme_pas_moy_glob[a][j]=0.0;
         Qr_mean_moy_glob[a]=0.0;
-        Qb_meanAllPairs_moy_glob[a]=0.0;
-        Qw_meanAllInd_moy_glob[a]=0.0;
-        Qind_moy_glob[a]=0.0;
+        Qbi_meanAllPairs_moy_glob[a]=0.0;
+        Qwi_meanAllInd_moy_glob[a]=0.0;
+        Qwind_moy_glob[a]=0.0;
     }
 }
 }
@@ -1712,10 +1714,10 @@ for(int a=0;a<sampleNb;a++) {
     fis_moy_numer[a]=0.0;
     if( !(Specific_Sample_Designbool[0] || Specific_Sample_Designbool[1]) ) {
         for(int i=0;i<max( max(dim_sample1[0],dim_sample2[0]), max(dim_sample1[1],dim_sample2[1]) );i++) {
-            for(int j=0;j<n_locus;j++) Q1[a][j][i]=0.0;
-            Q1_moy[a][i]=0.0;
+            for(int j=0;j<n_locus;j++) Qwbdeme_pas[a][j][i]=0.0;
+            Qwbdeme_pas_moy[a][i]=0.0;
         }
-        Qind_moy[a]=0.0;
+        Qwind_moy[a]=0.0;
         Qr_mean_moy[a]=0.0;
     }
 
@@ -2935,7 +2937,7 @@ double barrierCorrectionFactor;
          //cout << "Filling tabdis[" << coordOrigineX << "][" << coordOrigineY << "].cum2[" << ddx+dx_max << "][" << ddy+dy_max<< "]=" << tabdis[coordOrigineX][coordOrigineY].cum2[ddx+dx_max][ddy+dy_max] << endl;
 	  }
  }
-if(isnan(numer)) {
+if(std::isnan(numer)) {
     cout << "Probleme with the computation of tabdis numerator, numer is NaN." << endl;
     cout << "This should never happen, please contact the authors, and report this bug." << endl;
     cout << "I exit. Press any key to resume." << endl;
@@ -3166,7 +3168,7 @@ using namespace NS_translation;
     using namespace NS_diagnostic_tables;
 
 	int i,dispx=0,dispy=0;
-	int originex,originey,nbre_noeud_restant_loc;
+	int originex=1,originey=1,nbre_noeud_restant_loc;
 	double aleat1;
     double migra0=1.0-currTVparsPtr->Mig;  //CONSTANT local variable compared to random deviate many times
 
@@ -5003,8 +5005,8 @@ for(int a=0;a<sampleNb;a++){
     if(suiviQ  && !Specific_Sample_Designbool[a]) {
         fprintf(fsuivi,"%d ",rep);
         for(int i=0;i<(/*max(TVpars[0].dimRes1,*/max(dim_sample1[a],dim_sample2[a])/*)*/);i++) {
-            if(rep!=repet)fprintf(fsuivi,"%.10f %.10f ",Q1_moy[a][i],Q1_moy_glob[a][i]*repet/rep);
-             else fprintf(fsuivi,"%.10f %.10f ",Q1_moy[a][i],Q1_moy_glob[a][i]);
+            if(rep!=repet)fprintf(fsuivi,"%.10f %.10f ",Qwbdeme_pas_moy[a][i],Qwbdeme_pas_moy_glob[a][i]*repet/rep);
+             else fprintf(fsuivi,"%.10f %.10f ",Qwbdeme_pas_moy[a][i],Qwbdeme_pas_moy_glob[a][i]);
         }
         fprintf(fsuivi,"\n");
         fflush(fsuivi);
@@ -5017,10 +5019,10 @@ for(int a=0;a<sampleNb;a++){
         fprintf(fmoyenne,"Monomorphs (total sample) = %8.6e\n",mono);
         fprintf(fmoyenne,"tooManyMut (total sample) = %8.6e\n",tooManyMut);
         if(!Specific_Sample_Designbool[a]) {
-            if(ploidy==2 || TVpars[0].initialDens>1) fprintf(fmoyenne,"Mean within-deme identity prob. (within-individual for cont. pop.) Q0= %12.10e;\n",Qind_moy_glob[a]);
-            fprintf(fmoyenne,"Mean between-deme identity prob. (within-pop for cont. pop.) Q1= %12.10e \n",NS_diagnostic_tables::Qb_meanAllPairs_moy_glob[a]); //RL 062018 was Qr_mean_moy_glob, anciennenement mal nommé Qpop_moy_glob
+            if(ploidy==2 || TVpars[0].initialDens>1) fprintf(fmoyenne,"Mean within-deme identity prob. (within-individual for cont. pop.) Q0= %12.10e;\n",Qwind_moy_glob[a]);
+            fprintf(fmoyenne,"Mean between-deme identity prob. (within-pop for cont. pop.) Qwbdeme_pas= %12.10e \n",NS_diagnostic_tables::Qbi_meanAllPairs_moy_glob[a]); //RL 062018 was Qr_mean_moy_glob, anciennenement mal nommé Qpop_moy_glob
             for(int i=0;i<(/*max(TVpars[0].dimRes1,*/max(dim_sample1[a],dim_sample2[a])/*)*/);i++)
-                fprintf(fmoyenne,"Mean identity prob. for genes at %2d steps (Qr%2d) = %12.10e;\n",i,i,Q1_moy_glob[a][i]);
+                fprintf(fmoyenne,"Mean identity prob. for genes at %2d steps (Qr%2d) = %12.10e;\n",i,i,Qwbdeme_pas_moy_glob[a][i]);
             if(ploidy==2 || TVpars[0].initialDens>1) {
                 fprintf(fmoyenne,"Mean intra-deme coalescence time (total sample) = %.8f\n",coa_moy_glob);
                 fprintf(fmoyenne,"Mean observed heterozygosity Ho = %12.10e\n",hetero_moy_glob[a]);
@@ -5030,8 +5032,8 @@ for(int a=0;a<sampleNb;a++){
                 fprintf(fmoyenne,"Mean Variance of allelic size and SE = %12.10e (+- %12.10e))\n",Var_moy_glob[a],1.96*Var_moy_glob_var[a]);
                 fprintf(fmoyenne,"Mean M statistic (Garza & Williamson 2001) and SE = %12.10e (+- %12.10e))\n",M_moy_glob[a],1.96*M_moy_glob_var[a]);
             }
-            fprintf(fmoyenne,"Mean Fst (Fis for cont. pop.) = %12.10e \n",fis_moy_glob[a]);
-            fprintf(fmoyenne,"Mean Fst (Fis for cont. pop.) calculated as mean_num/mean_denom = %12.10e\n",fis_moy_numer_glob[a]/fis_moy_denom_glob[a]);
+            fprintf(fmoyenne,"Mean Fst (Fis for cont. pop.) calculated as mean Fis over loci and repetition= %12.10e \n",fis_moy_glob[a]);
+            fprintf(fmoyenne,"Mean Fst (Fis for cont. pop.) calculated as mean_num/mean_denom (mean over loci and repetition) = %12.10e\n",fis_moy_numer_glob[a]/fis_moy_denom_glob[a]);
             if (nMarker == 1 && TVpars[0].dimRes1*TVpars[0].dimRes2==1 && (model_mut.compare("IAM")==0 || model_mut.compare("KAM")==0 || model_mut.compare("SMM")==0)) {
                 fprintf(fmoyenne,"Theoretical expectations  for a wright fisher populaton of size: %d\n",TVpars[0].initialDens);
                 fprintf(fmoyenne,"Genetic diversity Hexp = %12.10e\n",Hexp);
@@ -5270,7 +5272,7 @@ for(int a=0;a<sampleNb;a++){
     if(Fisoui && (ploidy==2 || TVpars[0].initialDens>1)) {fprintf(ffishet,"%8.6e  ",fis_moy[a]);fprintf(ffishet2,"%8.6e  ",fis_moy[a]);}
     fprintf(ffishet,"%8.6e   ",mean_allele_nmbr);fprintf(ffishet2,"%8.6e   ",mean_allele_nmbr);
     for(int i=0;i<(/*max(TVpars[0].dimRes1,*/max(dim_sample1[a],dim_sample2[a])/*)*/);i++) {
-        fprintf(ffishet,"%8.6e   ",Q1_moy[a][i]);fprintf(ffishet2,"%8.6e   ",Q1_moy[a][i]);
+        fprintf(ffishet,"%8.6e   ",Qwbdeme_pas_moy[a][i]);fprintf(ffishet2,"%8.6e   ",Qwbdeme_pas_moy[a][i]);
     }
     if(arRegression) {
         fprintf(ffishet,"%8.6e   %8.6e   ",NS_diagnostic_tables::regression_ar[a][0],NS_diagnostic_tables::regression_ar[a][1]);
@@ -5532,7 +5534,7 @@ using namespace NS_diagnostic_tables;
 string disp_moy="MeanEmpDisp_"+fichier_genepop+".txt";
 string Immig_moy="MeanEmpImmigRate_"+fichier_genepop+".txt";
 
-ofstream fImmig_moy(Immig_moy,std::ios::out);
+ofstream fImmig_moy(Immig_moy.c_str(),std::ios::out);
 if(!fImmig_moy.is_open())
 {printf("ecriture fichiers cannot open file: %s\n",Immig_moy.c_str());
 	getchar();
@@ -5574,11 +5576,11 @@ fclose(fdisp_moy);
 void calcul_proba_identite_pour_distances_axiales(void)
 {/*totalement changee le 10072002,
   mais toujours pas en diagonale
-  modifs le 13082002 pour avpoir Qindividu
+  modifs le 13082002 pour avpoir Qwindividu
   */
 using namespace NS_coal_tree;
 
-int 	compteur_ind,Qind=0,_pas,nSample=1;
+int 	compteur_ind=0,Qwind_compteur=0,_pas,nSample=1;
 //int compteur[2000],identity[2000];
 //int *compteur,*identity;
 
@@ -5592,7 +5594,7 @@ for(int a=0;a<nSample;a++){
     if(a==1) {startIndex=n_genes[0]+1;endIndex=n_genes_total;}
 
     for(int iLoc=0;iLoc<n_locus;iLoc++) {//pour chaque locus
-        if(ploidy==2 || TVpars[0].initialDens>1) {Qind=0;compteur_ind=0;}
+        if(ploidy==2 || TVpars[0].initialDens>1) {Qwind_compteur=0;compteur_ind=0;}
         vector<int>compteur(max(TVpars[0].dimRes1,max(dim_sample1[a],dim_sample2[a]))+1,0);
         vector<int>identity(max(TVpars[0].dimRes1,max(dim_sample1[a],dim_sample2[a]))+1,0);
         for(int d1=startIndex+1;d1<=endIndex;d1++)//on compare tous les genes de l'echantillon deux a deux
@@ -5603,10 +5605,11 @@ for(int a=0;a<nSample;a++){
                      if(noeud[d1][iLoc].etat_allele==noeud[d2][iLoc].etat_allele) identity[_pas]++;
                      //printf("\n dim1 1compteur[%d]=%d,identity[%d]=%d",_pas,compteur[_pas],_pas,identity[_pas]);
                      //getchar();
-                     if( (ploidy==2 || TVpars[0].initialDens>1) &&(coord_individus[d1][x]==coord_individus[d2][x])&&((d1 % 2)==0))//car un ind=(impair,pair)
+                     if( ( ploidy==2 ) && ( coord_individus[d1][x]==coord_individus[d2][x] ) && ( (d1 % 2)==0 ) && ( d2 == (d1 - 1) ) )
+                         //car un ind=(impair,pair) RL072018 : ajout de && ( d1 == (d2 - 1) ) et retrait de  || TVpars[0].initialDens>1  pour rester dans un individu meme si dens>1
                         {compteur_ind++;
-                         if(noeud[d1][iLoc].etat_allele==noeud[d2][iLoc].etat_allele) Qind++;
-                         //printf("\n dim1 compteur_ind=%d,Qind=%d",compteur_ind,Qind);
+                         if(noeud[d1][iLoc].etat_allele==noeud[d2][iLoc].etat_allele) Qwind_compteur++;
+                         //printf("\n dim1 compteur_ind=%d,Qwind_compteur=%d",compteur_ind,Qwind_compteur);
                          //getchar();
                         }
                      if(TVpars[0].dimRes1!=vide_sampleX[a]
@@ -5641,22 +5644,22 @@ for(int a=0;a<nSample;a++){
             {if(identity[_pas]>0 )
                  {//printf("\nfinal compteur[%d]=%d,identity[%d]=%d",_pas,compteur[_pas],_pas,identity[_pas]);
                   //getchar();
-                  Q1[a][iLoc][_pas]=(double) identity[_pas]/compteur[_pas];
-                  //printf("\nfinal Q1[%d][loc=%d][_pas=%d]=%f",a,iLoc,_pas,Q1[a][iLoc][_pas]);
+                  Qwbdeme_pas[a][iLoc][_pas]=(double) identity[_pas]/compteur[_pas];
+                  //printf("\nfinal Qwbdeme_pas[%d][loc=%d][_pas=%d]=%f",a,iLoc,_pas,Qwbdeme_pas[a][iLoc][_pas]);
                   //getchar();
-                  Q1_moy[a][_pas]+=Q1[a][iLoc][_pas]/n_locus;
+                  Qwbdeme_pas_moy[a][_pas]+=Qwbdeme_pas[a][iLoc][_pas]/n_locus;
                  }
             }
-        if(ploidy==2 || TVpars[0].initialDens>1) if(Qind>0) {
-            Qind2[a][iLoc]= (double) Qind/compteur_ind;
-            Qind_moy[a]+=Qind2[a][iLoc]/n_locus;
-            //cout << "Qind2=" << Qind2[a][iLoc] << "=Qind/compteur_ind=" << Qind << "/" << compteur_ind << endl;
+        if(ploidy==2 || TVpars[0].initialDens>1) if(Qwind_compteur>0) {
+            Qwind[a][iLoc]= (double) Qwind_compteur/compteur_ind;
+            Qwind_moy[a]+=Qwind[a][iLoc]/n_locus;
+            //cout << "Qwind=" << Qwind[a][iLoc] << "=Qwind_compteur/compteur_ind=" << Qwind_compteur << "/" << compteur_ind << endl;
         }
 
         }//fin boucle sur iLoc
 
-    for(_pas=0;_pas<max(dim_sample1[a],dim_sample2[a]);_pas++) if(Q1_moy[a][_pas]!=0.0) Q1_moy_glob[a][_pas]+=Q1_moy[a][_pas]/repet;
-    if(ploidy==2 || TVpars[0].initialDens>1) if(Qind_moy[a]!=0.0) Qind_moy_glob[a]+=Qind_moy[a]/repet;
+    for(_pas=0;_pas<max(dim_sample1[a],dim_sample2[a]);_pas++) if(Qwbdeme_pas_moy[a][_pas]!=0.0) Qwbdeme_pas_moy_glob[a][_pas]+=Qwbdeme_pas_moy[a][_pas]/repet;
+    if(ploidy==2 || TVpars[0].initialDens>1) if(Qwind_moy[a]!=0.0) Qwind_moy_glob[a]+=Qwind_moy[a]/repet;
 }
 }
 
@@ -5675,98 +5678,97 @@ vector<size_t> comptPairDistClass;
 if(ploidy==1) genePairPerIndPair=1;
 double inc=1.0/(1.0*genePairPerIndPair);
 if(predispbool) nSample=2;
-
-    Qb_pair.clear();Qw_pair.clear();Qw_ind.clear();QiOverAllOtherInd.clear();
-    Qb_meanAllPairs.clear();Qw_meanAllInd.clear();Qb_distClass.clear();
-
-    Qb_pair.resize(nSample);Qw_pair.resize(nSample);Qw_ind.resize(nSample);QiOverAllOtherInd.resize(nSample);
-Qb_meanAllPairs.resize(nSample);Qw_meanAllInd.resize(nSample);Qb_distClass.resize(nSample);
-
-    Qb_pair_moy.clear();Qw_pair_moy.clear();Qw_ind_moy.clear();QiOverAllOtherInd_moy.clear();
-    Qb_meanAllPairs_moy.clear();Qw_meanAllInd_moy.clear();Qb_distClass_moy.clear();
-
     
-    Qb_pair_moy.resize(nSample);Qw_pair_moy.resize(nSample);Qw_ind_moy.resize(nSample);QiOverAllOtherInd_moy.resize(nSample);
-Qb_meanAllPairs_moy.resize(nSample);Qw_meanAllInd_moy.resize(nSample);Qb_distClass_moy.resize(nSample);
+Qbi_indPairs.clear();Qwi_indPairs.clear();Qwi_ind.clear();QiOverAllOtherInd.clear();
+Qbi_meanAllPairs.clear();Qwi_meanAllInd.clear();Qbi_distClass.clear();
 
-for(int a=0;a<nSample;a++){
+Qbi_indPairs.resize(nSample);Qwi_indPairs.resize(nSample);Qwi_ind.resize(nSample);QiOverAllOtherInd.resize(nSample);
+Qbi_meanAllPairs.resize(nSample);Qwi_meanAllInd.resize(nSample);Qbi_distClass.resize(nSample);
+
+Qbi_indPairs_moy.clear();Qwi_indPairs_moy.clear();Qwi_ind_moy.clear();QiOverAllOtherInd_moy.clear();
+Qbi_meanAllPairs_moy.clear();Qwi_meanAllInd_moy.clear();Qbi_distClass_moy.clear();
+
+Qbi_indPairs_moy.resize(nSample);Qwi_indPairs_moy.resize(nSample);Qwi_ind_moy.resize(nSample);QiOverAllOtherInd_moy.resize(nSample);
+Qbi_meanAllPairs_moy.resize(nSample);Qwi_meanAllInd_moy.resize(nSample);Qbi_distClass_moy.resize(nSample);
+
+for(size_t a=0;a<nSample;a++){
     
     size_t startGene=1,endGene=n_genes[0],pairNb=n_genes[0]/ploidy*(n_genes[0]/ploidy-1)/2;
     if(a==1) {startGene=n_genes[0]+1;endGene=n_genes_total;pairNb=n_genes[1]/ploidy*(n_genes[1]/ploidy-1)/2;}
     indNb=(endGene-startGene+1)/ploidy;
 
 
-    Qb_pair[a].resize(n_locus);Qw_pair[a].resize(n_locus);Qw_ind[a].resize(n_locus);QiOverAllOtherInd[a].resize(n_locus);
-    Qb_meanAllPairs[a].resize(n_locus,0.0);Qw_meanAllInd[a].resize(n_locus,0.0);Qb_distClass[a].resize(n_locus);
+    Qbi_indPairs[a].resize(n_locus);Qwi_indPairs[a].resize(n_locus);Qwi_ind[a].resize(n_locus);QiOverAllOtherInd[a].resize(n_locus);
+    Qbi_meanAllPairs[a].resize(n_locus,0.0);Qwi_meanAllInd[a].resize(n_locus,0.0);Qbi_distClass[a].resize(n_locus);
 
-    Qb_pair_moy[a].resize(pairNb,0.0);Qw_pair_moy[a].resize(pairNb,0.0);Qw_ind_moy[a].resize(pairNb,0.0);QiOverAllOtherInd_moy[a].resize(indNb);
-    Qb_distClass_moy[a].resize((int) floor(maxDistSample[a]) + 1,0.0);
+    Qbi_indPairs_moy[a].resize(pairNb,0.0);Qwi_indPairs_moy[a].resize(pairNb,0.0);Qwi_ind_moy[a].resize(pairNb,0.0);QiOverAllOtherInd_moy[a].resize(indNb);
+    Qbi_distClass_moy[a].resize((int) floor(maxDistSample[a]) + 2,0.0);
     
-    for(size_t iLoc=0;iLoc<n_locus;iLoc++) {//pour chaque locus
-        Qb_pair[a][iLoc].resize(pairNb,0.0);Qw_pair[a][iLoc].resize(pairNb,0.0);Qw_ind[a][iLoc].resize(indNb,0.0);QiOverAllOtherInd[a][iLoc].resize(indNb);
-        Qb_distClass[a][iLoc].resize((int) floor(maxDistSample[a]) + 1,0.0);comptPairDistClass.resize((int) floor(maxDistSample[a]) + 1,0);
+    for(size_t iLoc=0;iLoc< (size_t) n_locus;iLoc++) {//pour chaque locus
+        Qbi_indPairs[a][iLoc].resize(pairNb,0.0);Qwi_indPairs[a][iLoc].resize(pairNb,0.0);Qwi_ind[a][iLoc].resize(indNb,0.0);QiOverAllOtherInd[a][iLoc].resize(indNb);
+        Qbi_distClass[a][iLoc].resize((int) floor(maxDistSample[a]) + 2,0.0);comptPairDistClass.resize((int) floor(maxDistSample[a]) + 2,0);
 
         
         size_t pair=0;
         //loop over each individuals
-        for(size_t i=startGene+ploidy;i<=(endGene-ploidy+1);i+=ploidy) {
+        for(size_t i= ( startGene + (size_t) ploidy );i<= ( endGene - (size_t) ploidy + 1);i+=ploidy) {
             //loop over "all<" other individuals consider all individual pair
             for(size_t ii=startGene;ii<i;ii+=ploidy) {
                 //loop over each gene of each individual
-                for(size_t j=0;j<ploidy;j++) {
-                    for(size_t k=0;k<ploidy;k++) {
-                        if(noeud[i+j][iLoc].etat_allele==noeud[ii+k][iLoc].etat_allele) Qb_pair[a][iLoc][pair]+=inc;
+                for(size_t j=0;j < (size_t) ploidy;j++) {
+                    for(size_t k=0;k < (size_t) ploidy;k++) {
+                        if(noeud[i+j][iLoc].etat_allele==noeud[ii+k][iLoc].etat_allele) Qbi_indPairs[a][iLoc][pair]+=inc;
                         //cout << i+j << "vs" << ii+k << " -> allele=" << noeud[i+j][iLoc].etat_allele << "&" << noeud[ii+k][iLoc].etat_allele << endl;
-                        //cout << "Qb_pair[a][iLoc][pair]=" << Qb_pair[a][iLoc][pair] << endl;
+                        //cout << "Qbi_indPairs[a][iLoc][pair]=" << Qbi_indPairs[a][iLoc][pair] << endl;
                     }
                 }
                 
-                if(noeud[i][iLoc].etat_allele==noeud[i+1][iLoc].etat_allele) Qw_pair[a][iLoc][pair]+=1.0/2.0;
-                if(noeud[ii][iLoc].etat_allele==noeud[ii+1][iLoc].etat_allele) Qw_pair[a][iLoc][pair]+=1.0/2.0;
-                Qw_pair_moy[a][pair]+=Qw_pair[a][iLoc][pair]/n_locus;
+                if(noeud[i][iLoc].etat_allele==noeud[i+1][iLoc].etat_allele) Qwi_indPairs[a][iLoc][pair]+=1.0/2.0;
+                if(noeud[ii][iLoc].etat_allele==noeud[ii+1][iLoc].etat_allele) Qwi_indPairs[a][iLoc][pair]+=1.0/2.0;
+                Qwi_indPairs_moy[a][pair]+=Qwi_indPairs[a][iLoc][pair]/n_locus;
                 
-                Qb_meanAllPairs[a][iLoc]+=Qb_pair[a][iLoc][pair]/pairNb;
-                Qb_pair_moy[a][pair]+=Qb_pair[a][iLoc][pair]/n_locus;
-                Qb_meanAllPairs_moy[a]+=Qb_pair[a][iLoc][pair]/pairNb/n_locus;
+                Qbi_meanAllPairs[a][iLoc]+=Qbi_indPairs[a][iLoc][pair]/pairNb;
+                Qbi_indPairs_moy[a][pair]+=Qbi_indPairs[a][iLoc][pair]/n_locus;
+                Qbi_meanAllPairs_moy[a]+=Qbi_indPairs[a][iLoc][pair]/pairNb/n_locus;
                 
-                QiOverAllOtherInd[a][iLoc][(i-1)/ploidy]+=Qb_pair[a][iLoc][pair]/(indNb-1);
-                QiOverAllOtherInd[a][iLoc][(ii-1)/ploidy]+=Qb_pair[a][iLoc][pair]/(indNb-1);
-                QiOverAllOtherInd_moy[a][(i-1)/ploidy]+=Qb_pair[a][iLoc][pair]/(indNb-1)/n_locus;
-                QiOverAllOtherInd_moy[a][(ii-1)/ploidy]+=Qb_pair[a][iLoc][pair]/(indNb-1)/n_locus;
+                QiOverAllOtherInd[a][iLoc][(i-1)/ploidy]+=Qbi_indPairs[a][iLoc][pair]/(indNb-1);
+                QiOverAllOtherInd[a][iLoc][(ii-1)/ploidy]+=Qbi_indPairs[a][iLoc][pair]/(indNb-1);
+                QiOverAllOtherInd_moy[a][(i-1)/ploidy]+=Qbi_indPairs[a][iLoc][pair]/(indNb-1)/n_locus;
+                QiOverAllOtherInd_moy[a][(ii-1)/ploidy]+=Qbi_indPairs[a][iLoc][pair]/(indNb-1)/n_locus;
                 
                 if(ii==startGene) { // pour boucle sur individu = une seule fois par ind (i-1)/ploidy
                     if(ploidy==2 && noeud[i][iLoc].etat_allele==noeud[i+1][iLoc].etat_allele) {
-                        Qw_ind[a][iLoc][(i-1)/ploidy]=1.0;
-                        Qw_ind_moy[a][(i-1)/ploidy]+=1.0/n_locus;
-                        Qw_meanAllInd[a][iLoc]+=1.0/(indNb);
-                        Qw_meanAllInd_moy[a]+=1.0/(indNb)/n_locus;
+                        Qwi_ind[a][iLoc][(i-1)/ploidy]=1.0;
+                        Qwi_ind_moy[a][(i-1)/ploidy]+=1.0/n_locus;
+                        Qwi_meanAllInd[a][iLoc]+=1.0/(indNb);
+                        Qwi_meanAllInd_moy[a]+=1.0/(indNb)/n_locus;
                     }
                     //et une fois pour l'individu (startGene-1)/ploidy qui n'est pas dans la boucle i
                     if(i==(startGene+ploidy) ) {
                         if(ploidy==2 && noeud[ii][iLoc].etat_allele==noeud[ii+1][iLoc].etat_allele ) {
-                            Qw_ind[a][iLoc][(ii-1)/ploidy]=1.0;
-                            Qw_ind_moy[a][(ii-1)/ploidy]+=Qw_ind[a][iLoc][(ii-1)/ploidy]/n_locus;
-                            Qw_meanAllInd[a][iLoc]+=1.0/(indNb);
-                            Qw_meanAllInd_moy[a]+=1.0/(indNb)/n_locus;
+                            Qwi_ind[a][iLoc][(ii-1)/ploidy]=1.0;
+                            Qwi_ind_moy[a][(ii-1)/ploidy]+=Qwi_ind[a][iLoc][(ii-1)/ploidy]/n_locus;
+                            Qwi_meanAllInd[a][iLoc]+=1.0/(indNb);
+                            Qwi_meanAllInd_moy[a]+=1.0/(indNb)/n_locus;
                         }
                     }
                 }
-                size_t dist=floor(sqrt( sq( (double) (coord_individus[i][x] - coord_individus[ii][x]) )
+                size_t dist= (size_t) floor(sqrt( sq( (double) (coord_individus[i][x] - coord_individus[ii][x]) )
                                        + sq( (double) (coord_individus[i][y] - coord_individus[ii][y]) ) ) );
-                Qb_distClass[a][iLoc][dist]+=Qb_pair[a][iLoc][pair];
-                Qb_distClass_moy[a][dist]+=Qb_pair[a][iLoc][pair]/n_locus;
+                Qbi_distClass[a][iLoc][dist]+=Qbi_indPairs[a][iLoc][pair];
+                Qbi_distClass_moy[a][dist]+=Qbi_indPairs[a][iLoc][pair]/n_locus;
 
                 comptPairDistClass[dist]++;
                 pair++;
 
             }
         }
-        for(size_t d=0;d<=(int) floor(maxDistSample[a]);d++) if(comptPairDistClass[d] != 0) {
-            Qb_distClass[a][iLoc][d]/=1.0*comptPairDistClass[d];
-            Qb_distClass_moy[a][d]/=1.0*comptPairDistClass[d];
+        for(size_t d=0;d<=(size_t) floor(maxDistSample[a]) +1;d++) if(comptPairDistClass[d] != 0) {
+            Qbi_distClass[a][iLoc][d]/=1.0*comptPairDistClass[d];
+            Qbi_distClass_moy[a][d]/=1.0*comptPairDistClass[d];
         } else {
-            Qb_distClass[a][iLoc][d]=0.0;
-            Qb_distClass_moy[a][d]=0.0;
+            Qbi_distClass[a][iLoc][d]=0.0;
+            Qbi_distClass_moy[a][d]=0.0;
 
         }
     }//fin boucle sur iLoc
@@ -5779,7 +5781,7 @@ for(int a=0;a<nSample;a++){
 //        for(size_t i=startGene+ploidy;i<=(endGene-ploidy+1);i+=ploidy) {
 //            for(size_t ii=startGene;ii<i;ii+=ploidy) {
 //                cout << "p=" << pair << "->";
-//                cout << "Qb=" << Qb_pair[a][iLoc][pair] << "; Qw=" << Qw_pair[a][iLoc][pair] << endl;
+//                cout << "Qb=" << Qbi_indPairs[a][iLoc][pair] << "; Qw=" << Qwi_indPairs[a][iLoc][pair] << endl;
 //                pair++;
 //            }
 //        }
@@ -5787,16 +5789,16 @@ for(int a=0;a<nSample;a++){
 //        cout << endl;
 //        for(size_t i=startGene;i<=(endGene-ploidy+1);i+=ploidy) {
 //            cout << "ind=" << (i-1)/ploidy << "->";
-//            cout << "Qw=" << Qw_ind[a][iLoc][(i-1)/ploidy] << "; ";
+//            cout << "Qw=" << Qwi_ind[a][iLoc][(i-1)/ploidy] << "; ";
 //            cout << "QiOverAllOtherInd=" << QiOverAllOtherInd[a][iLoc][(i-1)/ploidy] << endl;
 //        }
 //        cout << endl;
-//        cout << "Qw_meanAllInd=" << Qw_meanAllInd[a][iLoc] << endl;
-//        cout << "Qb_meanAllPairs=" << Qb_meanAllPairs[a][iLoc] << endl;
+//        cout << "Qwi_meanAllInd=" << Qwi_meanAllInd[a][iLoc] << endl;
+//        cout << "Qbi_meanAllPairs=" << Qbi_meanAllPairs[a][iLoc] << endl;
 //
 //
 //        for(size_t d=0;d<=(int) floor(maxDistSample[a]);d++) {
-//            cout << "d=" << d << "->" << Qb_distClass[a][iLoc][d] << endl;;
+//            cout << "d=" << d << "->" << Qbi_distClass[a][iLoc][d] << endl;;
 //        }
 //    }//fin boucle sur iLoc
 //
@@ -5805,7 +5807,7 @@ for(int a=0;a<nSample;a++){
 //    for(size_t i=startGene+ploidy;i<=(endGene-ploidy+1);i+=ploidy) {
 //        for(size_t ii=startGene;ii<i;ii+=ploidy) {
 //            cout << "p=" << pair << "->";
-//            cout << "Qb_moy=" << Qb_pair_moy[a][pair] << endl;
+//            cout << "Qbi_moy=" << Qbi_indPairs_moy[a][pair] << endl;
 //            pair++;
 //        }
 //    }
@@ -5813,16 +5815,16 @@ for(int a=0;a<nSample;a++){
 //    cout << endl;
 //    for(size_t i=startGene;i<=(endGene-ploidy+1);i+=ploidy) {
 //        cout << "ind=" << (i-1)/ploidy << "->";
-//        cout << "Qw_moy=" << Qw_ind_moy[a][(i-1)/ploidy] << "; ";
+//        cout << "Qwi_moy=" << Qwi_ind_moy[a][(i-1)/ploidy] << "; ";
 //        cout << "QiOverAllOtherInd_moy=" << QiOverAllOtherInd_moy[a][(i-1)/ploidy] << endl;
 //    }
 //    cout << endl;
-//    cout << "Qw_meanAllInd_moy=" << Qw_meanAllInd_moy[a] << endl;
-//    cout << "Qb_meanAllPairs_moy=" << Qb_meanAllPairs_moy[a] << endl;
+//    cout << "Qwi_meanAllInd_moy=" << Qwi_meanAllInd_moy[a] << endl;
+//    cout << "Qbi_meanAllPairs_moy=" << Qbi_meanAllPairs_moy[a] << endl;
 //    
 //    
 //    for(size_t d=0;d<=(int) floor(maxDistSample[a]);d++) {
-//        cout << "d=" << d << "->Qb_distClass_moy=" << Qb_distClass_moy[a][d] << endl;;
+//        cout << "d=" << d << "->Qbi_distClass_moy=" << Qbi_distClass_moy[a][d] << endl;;
 //    }
 
 }//fin boucle sur sample a
@@ -6058,13 +6060,13 @@ if(HexpNeioui && a==0) freq_sample();
 for(int loc=0;loc<n_locus;loc++)
 	{Qr_mean[a]=0.0;// RL 062018 a virer car ne sert a rien
         if(ploidy==2 || TVpars[0].initialDens>1) {
-            if(  dens_sample[a]==1 && ( fabs(Qind2[a][loc] - Qw_meanAllInd[a][loc]) > 0.000001 ) ) {
-                cout << "Qind2[a][loc] != Qw_meanAllInd[a][loc], I exit" << endl;
+            if(  dens_sample[a]==1 && ( fabs(Qwind[a][loc] - Qwi_meanAllInd[a][loc]) > 0.000001 ) ) {
+                cout << "Qwind[a][loc] != Qwi_meanAllInd[a][loc], I exit" << endl;
                 if(cinGetOnError) cin.get();
                 exit(-1);
             }
-            hetero[a][loc]=1.0-Qind2[a][loc];
-            //cout << "Het[" << a << "][" << loc << "]=" << hetero[a][loc] << " Qind2=" << Qind2[a][loc] << endl;
+            hetero[a][loc]=1.0-Qwind[a][loc];
+            //cout << "Het[" << a << "][" << loc << "]=" << hetero[a][loc] << " Qwind=" << Qwind[a][loc] << endl;
             //cin.get();
 
         }
@@ -6080,11 +6082,11 @@ for(int loc=0;loc<n_locus;loc++)
 
     for(int _pas=1;_pas<max(dim_sample1[a],dim_sample2[a]);_pas++)// proba d'identité inter "pop" ou inter individus en pop cont, a vérifier
         //RL 062018 : faux c'est la moyenne des Qr, et pas la moyenne sur toutes les paires d'individus
-    	Qr_mean[a]+=Q1[a][loc][_pas];// RL 062018 a virer car ne sert a rien
+    	Qr_mean[a]+=Qwbdeme_pas[a][loc][_pas];// RL 062018 a virer car ne sert a rien
 
 	if(max(dim_sample1[a],dim_sample2[a])>1) Qr_mean[a]=Qr_mean[a]/( (double) max(dim_sample1[a],dim_sample2[a])-1.0);
     if(Fisoui && (ploidy==2 || TVpars[0].initialDens>1) && max(dim_sample1[a],dim_sample2[a])>1) {
-        if((1.0 - Qb_meanAllPairs[a][loc])>petit) fis[a][loc]=(Qind2[a][loc]-Qb_meanAllPairs[a][loc])/(1.0-Qb_meanAllPairs[a][loc]); else fis[a][loc]=0.0;
+        if((1.0 - Qbi_meanAllPairs[a][loc])>petit) fis[a][loc]=(Qwind[a][loc]-Qbi_meanAllPairs[a][loc])/(1.0-Qbi_meanAllPairs[a][loc]); else fis[a][loc]=0.0;
     }
 	if(ploidy==2 || TVpars[0].initialDens>1) hetero_moy[a]+=hetero[a][loc];
 	if(HexpNeioui) {
@@ -6092,8 +6094,8 @@ for(int loc=0;loc<n_locus;loc++)
 		HexpNei_moy_glob_var[a]+=pow(HexpNei[a][loc],2);
 	}
 	if(Fisoui && (ploidy==2 || TVpars[0].initialDens>1) && max(dim_sample1[a],dim_sample2[a])>1) {
-		fis_moy_numer[a]+=Qind2[a][loc]-Qb_meanAllPairs[a][loc];
-		fis_moy_denom[a]+=1.0-Qb_meanAllPairs[a][loc];
+		fis_moy_numer[a]+=Qwind[a][loc]-Qbi_meanAllPairs[a][loc];
+		fis_moy_denom[a]+=1.0-Qbi_meanAllPairs[a][loc];
 	}
 	Qr_mean_moy[a]+=Qr_mean[a];// RL 062018 a virer car ne sert a rien
 	}
@@ -6104,8 +6106,8 @@ if(Fisoui && (ploidy==2 || TVpars[0].initialDens>1) && max(dim_sample1[a],dim_sa
     if(fis_moy_denom[a]>petit) fis_moy[a]=fis_moy_numer[a]/fis_moy_denom[a]; else fis_moy[a]=0.0;
 } else fis_moy[a]=0.0;
 Qr_mean_moy[a]=Qr_mean_moy[a]/n_locus; // RL 062018 a virer car ne sert a rien
-if(  dens_sample[a]==1 && ( fabs(Qind_moy[a] - Qw_meanAllInd_moy[a]) > 0.000001 ) ) {
-    cout << "Qind_moy[a] != Qw_meanAllInd_moy[a], I exit" << endl;
+if(  dens_sample[a]==1 && ( fabs( ( Qwind_moy[a] - Qwi_meanAllInd_moy[a] ) / Qwi_meanAllInd_moy[a] ) > 0.000001 ) ) {
+    cout << "Qwind_moy[a] != Qwi_meanAllInd_moy[a], I exit" << endl;
     if(cinGetOnError) cin.get();
     exit(-1);
 }
@@ -6120,11 +6122,11 @@ if(HexpNeioui) HexpNei_moy_glob[a]+=HexpNei_moy[a];
 if(ploidy==2 || TVpars[0].initialDens>1) fis_moy_numer_glob[a]+=fis_moy_numer[a];
 if(ploidy==2 || TVpars[0].initialDens>1) fis_moy_denom_glob[a]+=fis_moy_denom[a];
 Qr_mean_moy_glob[a]+=Qr_mean_moy[a];// RL 062018 a virer car ne sert a rien
-Qb_meanAllPairs_moy_glob[a]+=Qb_meanAllPairs_moy[a];
-Qw_meanAllInd_moy_glob[a]+=Qw_meanAllInd_moy[a];
+Qbi_meanAllPairs_moy_glob[a]+=Qbi_meanAllPairs_moy[a];
+Qwi_meanAllInd_moy_glob[a]+=Qwi_meanAllInd_moy[a];
 if(Fisoui && (ploidy==2 || TVpars[0].initialDens>1)) fis_moy_glob[a]+=fis_moy[a];//le bon
-if( dens_sample[a]==1 && ( fabs(Qind_moy_glob[a]*repet - Qw_meanAllInd_moy_glob[a]) > 0.000001) ) {
-    cout << "Qind_moy_glob[a] != Qw_meanAllInd_moy_glob[a], I exit" << endl;
+if( dens_sample[a]==1 && ( fabs(Qwind_moy_glob[a]*repet - Qwi_meanAllInd_moy_glob[a]) > 0.000001) ) {
+    cout << "Qwind_moy_glob[a] != Qwi_meanAllInd_moy_glob[a], I exit" << endl;
     if(cinGetOnError) cin.get();
     exit(-1);
 }
@@ -6148,8 +6150,8 @@ if(rep==repet) {
 //      fflush(stdout);
   }
   Qr_mean_moy_glob[a]/=repet;
-  Qb_meanAllPairs_moy_glob[a]/=repet;
-  Qw_meanAllInd_moy_glob[a]/=repet;
+  Qbi_meanAllPairs_moy_glob[a]/=repet;
+  Qwi_meanAllInd_moy_glob[a]/=repet;
   if(Fisoui && (ploidy==2 || TVpars[0].initialDens>1)) {
 	  fis_moy_glob[a]/=repet;//le bon
 	  fis_moy_numer_glob[a]/=repet;
@@ -6159,8 +6161,8 @@ if(rep==repet) {
     printf("\n");
   if(a==0) printf("\nVarious statistics on the genetic sample (postdisp)");
       else printf("\nVarious statistics on the predisp genetic sample");
-     if(ploidy==2 || TVpars[0].initialDens>1) printf("\nMean within-deme identity prob. (within-individual for cont. pop.) =%12.10e\nMean observed heterozygosity within demes (within-individual for cont. pop.) =%12.10e",Qind_moy_glob[a],hetero_moy_glob[a]);
-    printf("\nMean between-deme identity prob. (within-pop for a cont. pop.)=%12.10e \n ",Qb_meanAllPairs_moy_glob[a]);
+     if(ploidy==2 || TVpars[0].initialDens>1) printf("\nMean within-deme identity prob. (within-individual for cont. pop.) =%12.10e\nMean observed heterozygosity within demes (within-individual for cont. pop.) =%12.10e",Qwind_moy_glob[a],hetero_moy_glob[a]);
+    printf("\nMean between-deme identity prob. (within-pop for a cont. pop.)=%12.10e \n ",Qbi_meanAllPairs_moy_glob[a]);
   if(HexpNeioui) printf("\nHexpNei=%12.10e (+- %12.10e)",HexpNei_moy_glob[a],1.96*HexpNei_moy_glob_var[a]);
   if(HexpNeioui && a==0) printf("\nAllele number=%12.10e",mean_allele_nmbr);
   if(Varoui)     printf("\nVar=%12.10e (+- %12.10e)",Var_moy_glob[a],1.96*Var_moy_glob_var[a]);
@@ -6421,21 +6423,21 @@ vector<vector<vector<vector<double> > > > indicVar;
 //computation of indicator variables for all loci, all individuals, all genes, and all allelic states
 indicVar.resize(n_locus);//locus indexing starting at 0
 //loop over each locus
-for(int l=0;l<n_locus;l++){
+for(size_t l=0;l<  (size_t) n_locus;l++){
     indicVar[l].resize(n_genes_total-ploidy+2);//To keep node/gene indexing starting at 1, and use 0 to store the mean
     //loop over each individuals
-    for(int i=1;i<=(n_genes_total-ploidy+1);i+=ploidy) {
+    for(size_t i=1;i<= (size_t) (n_genes_total-ploidy+1);i+= (size_t) ploidy) {
         indicVar[l][i].resize(ploidy+1);//gene indexing starting at 1, and use 0 to store the mean
         indicVar[l][i][0].resize(ploidy+1);//gene indexing starting at 1, and use 0 to store the mean
         for(int j=1;j<=ploidy;j++) {
             indicVar[l][i][0].resize(maximum_allele_number+1);
         }
         //loop over each gene of each individual
-        for(int j=1;j<=ploidy;j++) {
+        for(size_t j=1;j<= (size_t) ploidy;j++) {
             indicVar[l][i][j].resize(maximum_allele_number+1);
             //Loop over each possible allelic type
-            for(int u=1;u<=maximum_allele_number;u++) {//allele indexing starting at 1
-                if(noeud[i+j-1][l].etat_allele==u) indVar=1; else indVar=0;
+            for(size_t u=1;u<= (size_t) maximum_allele_number;u++) {//allele indexing starting at 1
+                if( (size_t) noeud[i+j-1][l].etat_allele == u) indVar=1; else indVar=0;
                 indicVar[l][i][j][u]=indVar;
                 indicVar[l][i][0][u]+=1.0*indVar/ploidy;
                 //indicVar[l][0][0][u]+=indVar/ploidy/(endGene-startGene+1); //RL 062018 not used to be removed
@@ -6466,7 +6468,7 @@ if(predispbool) sampleNb=2;
     SSw.resize(sampleNb);SSb.resize(sampleNb);SSw_SumOverAllPairs.resize(sampleNb);
     SSb_SumForEachIndOverOthers.resize(sampleNb);
 
-for(int a=0;a<sampleNb;a++){//lopp over pre and postdisp samples
+for(size_t a=0;a<sampleNb;a++){//lopp over pre and postdisp samples
     
     size_t startGene=1,endGene=n_genes[0],pairNb=n_genes[0]/ploidy*(n_genes[0]/ploidy-1)/2;
     if(a==1) {startGene=n_genes[0]+1;endGene=n_genes_total;pairNb=n_genes[1]/ploidy*(n_genes[1]/ploidy-1)/2;}
@@ -6497,11 +6499,11 @@ for(int a=0;a<sampleNb;a++){//lopp over pre and postdisp samples
         for(size_t ii=startGene;ii<i;ii+=ploidy) {
             SSw[a][pair].resize(n_locus,0.0);SSb[a][pair].resize(n_locus,0.0);
             //loop over each locus
-           for(size_t l=0;l<n_locus;l++){
+           for(size_t l=0;l< (size_t) n_locus;l++){
                //loop over each gene of each individual
-               for(size_t j=1;j<=ploidy;j++) {
+               for(size_t j=1;j<= (size_t) ploidy;j++) {
                    //Loop over each possible allelic type
-                   for(size_t u=1;u<=maximum_allele_number;u++) {
+                   for(size_t u=1;u<= (size_t) maximum_allele_number;u++) {
                        //cout << "pair i=" << i << ", ii=" << ii << " j=" << j  << " u=" << u << "; Xi_j_u=" << indicVar[l][i][j][u] << endl;
                        SSw[a][pair][l]+=sq( (double) indicVar[l][i][j][u] - indicVar[l][i][0][u] );
                        SSw[a][pair][l]+=sq( (double) indicVar[l][ii][j][u] - indicVar[l][ii][0][u] );
@@ -6535,7 +6537,7 @@ void computeGeoDist() {
     if(predispbool) sampleNb=2;
     indGeoDist.resize(sampleNb);popGeoDist.resize(sampleNb);maxDistSample.resize(sampleNb);
     
-    for(int a=0;a<sampleNb;a++){//lopp over pre and postdisp samples
+    for( size_t a=0;a<sampleNb;a++){//lopp over pre and postdisp samples
         
         size_t startGene=1,endGene=n_genes[0],indPairNb=n_genes[0]/ploidy*(n_genes[0]/ploidy-1)/2,popPairNb;
         if(a==1) {startGene=n_genes[0]+1;endGene=n_genes_total;indPairNb=n_genes[1]/ploidy*(n_genes[1]/ploidy-1)/2;}
@@ -6601,69 +6603,74 @@ void computeFstats_ar_er_moranI(bool commonSSwInNumAndDenom=true) {
         size_t startGene=1,endGene=n_genes[0],pairNb=n_genes[0]/ploidy*(n_genes[0]/ploidy-1)/2;
         if(a==1) {startGene=n_genes[0]+1;endGene=n_genes_total;pairNb=n_genes[1]/ploidy*(n_genes[1]/ploidy-1)/2;}
         //indNb=(endGene-startGene+1)/ploidy;
-        sumLocNum_ar.resize(pairNb,0.0);
-        sumLocNum_er.resize(pairNb,0.0);
+        if(!noSSbool) {
+            
+            sumLocNum_ar.resize(pairNb,0.0);
+            sumLocNum_er.resize(pairNb,0.0);
 
         //loop over each locus (multilocus estimator is the ratio of the sum of locus specific num & denom)
-        for(size_t l=0;l<n_locus;l++){
-            //loop over each pair of individuals
-            size_t pair=0;
-            //loop over each individuals
-            for(size_t i=startGene+ploidy;i<=(endGene-ploidy+1);i+=ploidy) {
-                //loop over "all<" other individuals consider all individual pair
-                for(size_t ii=startGene;ii<i;ii+=ploidy) {
-                    if (! commonSSwInNumAndDenom ) {
-                        sumLocNum_ar[pair] += (2*SSb[a][pair][l] - SSw[a][pair][l])*pairNb;
+			for(size_t l=0;l< (size_t) n_locus;l++) {
+				//loop over each pair of individuals
+				size_t pair=0;
+				//loop over each individuals
+				for(size_t i=startGene+ploidy;i<=(endGene-ploidy+1);i+=ploidy) {
+					//loop over "all<" other individuals consider all individual pair
+					for(size_t ii=startGene;ii<i;ii+=ploidy) {
+						if (! commonSSwInNumAndDenom ) {
+							sumLocNum_ar[pair] += (2*SSb[a][pair][l] - SSw[a][pair][l])*pairNb;
 
-                    } else {
-                        sumLocNum_ar[pair] += SSb[a][pair][l]*pairNb;
-                    }
-                    pair++;
-                }
-            }
-            sumLocDenom+=SSw_SumOverAllPairs[a][l];
+						} else {
+							sumLocNum_ar[pair] += SSb[a][pair][l]*pairNb;
+						}
+						pair++;
+					}
+				}
+				sumLocDenom+=SSw_SumOverAllPairs[a][l];
+			}
         }
-        
+
         size_t pair=0;
        
         Fstat_ar_fromSS[a].resize(pairNb);
         Fstat_ar_fromQ[a].resize(pairNb);
         Fstat_er_fromQ[a].resize(pairNb);
         Fstat_moranI_fromQ_forEachIndPairs[a].resize(pairNb);
-        Fstat_moranI_fromQ_forEachDistClass[a].resize(maxDistSample[a]);
+        Fstat_moranI_fromQ_forEachDistClass[a].resize(( (size_t) floor(maxDistSample[a]) ) + 2);
         //loop over each pair
         pair=0;
         //loop over each individuals
         for(size_t i=startGene+ploidy;i<=(endGene-ploidy+1);i+=ploidy) {
             //loop over "all<" other individuals consider all individual pair
             for(size_t ii=startGene;ii<i;ii+=ploidy) {
-                if (! commonSSwInNumAndDenom ) Fstat_ar_fromSS[a][pair] = sumLocNum_ar[pair]/(2*sumLocDenom);
-                 else Fstat_ar_fromSS[a][pair] = sumLocNum_ar[pair]/sumLocDenom - 1.0/2.0;
+                if(!noSSbool) {
+                    if (! commonSSwInNumAndDenom ) Fstat_ar_fromSS[a][pair] = sumLocNum_ar[pair]/(2*sumLocDenom);
+                     else Fstat_ar_fromSS[a][pair] = sumLocNum_ar[pair]/sumLocDenom - 1.0/2.0;
+                }
                 
-                Fstat_ar_fromQ[a][pair]=(Qw_pair_moy[a][pair] - Qb_pair_moy[a][pair])/(1 - Qw_meanAllInd_moy[a]);
+                Fstat_ar_fromQ[a][pair]=(Qwi_indPairs_moy[a][pair] - Qbi_indPairs_moy[a][pair])/(1 - Qwi_meanAllInd_moy[a]);
 //                cout << endl << "ar from SS=" << Fstat_ar_fromSS[a][pair] << "=SumLocNumPair/sumLocDenom - 0.5=" << sumLocNum_ar[pair] << "/" << sumLocDenom << "-0.5";
 //                cout << " (2*sumLocNum-sumLocDenom=" << 2*sumLocNum_ar[pair] - sumLocDenom << ")" << endl;
-//                cout << "ar from Q=" << Fstat_ar_fromQ[a][pair] <<"=(Qw_pair_moy - Qb_pair_moy) / (1 - Qw_meanAllInd_moy[a])="
-//                        << (Qw_pair_moy[a][pair] - Qb_pair_moy[a][pair]) << "/" << (1 - Qw_meanAllInd_moy[a]) << endl;
-                if ((!commonSSwInNumAndDenom && ( fabs( Fstat_ar_fromQ[a][pair] - Fstat_ar_fromSS[a][pair] ) > 0.000001 ) ) ) {
+//                cout << "ar from Q=" << Fstat_ar_fromQ[a][pair] <<"=(Qwi_indPairs_moy - Qbi_indPairs_moy) / (1 - Qwi_meanAllInd_moy[a])="
+//                        << (Qwi_indPairs_moy[a][pair] - Qbi_indPairs_moy[a][pair]) << "/" << (1 - Qwi_meanAllInd_moy[a]) << endl;
+                if ((!noSSbool && !commonSSwInNumAndDenom && ( fabs( Fstat_ar_fromQ[a][pair] - Fstat_ar_fromSS[a][pair] ) > 0.000001 ) ) ) {
                     cout << endl << "ar from SS=" << Fstat_ar_fromSS[a][pair] << "=SumLocNumPair/(2*sumLocDenom) =" << sumLocNum_ar[pair] << "/" << 2*sumLocDenom << endl;
-                    cout << "ar from Q=" << Fstat_ar_fromQ[a][pair] <<"=(Qw_pair_moy - Qb_pair_moy) / (1 - Qw_meanAllInd_moy[a])="
-                            << (Qw_pair_moy[a][pair] - Qb_pair_moy[a][pair]) << "/" << (1 - Qw_meanAllInd_moy[a]) << endl;
+                    cout << "ar from Q=" << Fstat_ar_fromQ[a][pair] <<"=(Qwi_indPairs_moy - Qbi_indPairs_moy) / (1 - Qwi_meanAllInd_moy[a])="
+                            << (Qwi_indPairs_moy[a][pair] - Qbi_indPairs_moy[a][pair]) << "/" << (1 - Qwi_meanAllInd_moy[a]) << endl;
                 
                 }
                 
-                Fstat_er_fromQ[a][pair] = ( ( QiOverAllOtherInd_moy[a][ ( i-1 ) / ploidy ] + QiOverAllOtherInd_moy[a][ ( ii -1 ) / ploidy ] ) - Qb_pair_moy[a][pair] /* - Qw_meanAllInd_moy[a]*/ ) / ( 1 - Qw_meanAllInd_moy[a] );
-                //cout << endl << endl << "er from Q=( Qb_pair - ( QiOverAllOtherInd + QiOverAllOtherInd ) ) / ( 1 - Qw_meanAllInd) =" << Fstat_er_fromQ[a][pair] << endl;
-                //cout << "Qb_pair_moy=" << Qb_pair_moy[a][pair] << "; QiOverAllOtherInd_moy=" << QiOverAllOtherInd_moy[a][ ( i-1 ) / ploidy ] << "; QjOverAllOtherInd_moy=" << QiOverAllOtherInd_moy[a][ ( ii -1 ) / ploidy ] << "; (1 - Qw_meanAllInd) = " <<  ( 1 - Qw_meanAllInd_moy[a]) ;
+                Fstat_er_fromQ[a][pair] = ( ( QiOverAllOtherInd_moy[a][ ( i-1 ) / ploidy ] + QiOverAllOtherInd_moy[a][ ( ii -1 ) / ploidy ] ) - Qbi_indPairs_moy[a][pair] /* - Qwi_meanAllInd_moy[a]*/ ) / ( 1 - Qwi_meanAllInd_moy[a] );
+                //cout << endl << endl << "er from Q=( Qbi_indPairs - ( QiOverAllOtherInd + QiOverAllOtherInd ) ) / ( 1 - Qwi_meanAllInd) =" << Fstat_er_fromQ[a][pair] << endl;
+                //cout << "Qbi_indPairs_moy=" << Qbi_indPairs_moy[a][pair] << "; QiOverAllOtherInd_moy=" << QiOverAllOtherInd_moy[a][ ( i-1 ) / ploidy ] << "; QjOverAllOtherInd_moy=" << QiOverAllOtherInd_moy[a][ ( ii -1 ) / ploidy ] << "; (1 - Qwi_meanAllInd) = " <<  ( 1 - Qwi_meanAllInd_moy[a]) ;
 
-                Fstat_moranI_fromQ_forEachIndPairs[a][pair] = ( Qb_pair_moy[a][pair] - Qb_meanAllPairs_moy[a] ) / ( (1 + Qw_meanAllInd_moy[a] ) / 2 - Qb_meanAllPairs_moy[a] );
+                Fstat_moranI_fromQ_forEachIndPairs[a][pair] = ( Qbi_indPairs_moy[a][pair] - Qbi_meanAllPairs_moy[a] ) / ( (1 + Qwi_meanAllInd_moy[a] ) / 2 - Qbi_meanAllPairs_moy[a] );
                 //cout << "moranI_indPairs from Q=" << Fstat_moranI_fromQ_forEachDistClass[a][pair] << endl;
 
                 pair++;
             }
         }
-        for(size_t d=0;d<=(int) floor(maxDistSample[a]);d++) {
-            Fstat_moranI_fromQ_forEachDistClass[a][pair] = ( Qb_distClass_moy[a][d] - Qb_meanAllPairs_moy[a] ) / ( (1 + Qw_meanAllInd_moy[a] ) / 2 - Qb_meanAllPairs_moy[a] );
+        for(size_t d=0;d<=(size_t) floor(maxDistSample[a])+1;d++) {
+            Fstat_moranI_fromQ_forEachDistClass[a][d] = ( Qbi_distClass_moy[a][d] - Qbi_meanAllPairs_moy[a] ) / ( (1 + Qwi_meanAllInd_moy[a] ) / 2 - Qbi_meanAllPairs_moy[a] );
             //cout << "moranI_DistClass from Q=" << Fstat_moranI_fromQ_forEachDistClass[a][d] << endl;
         }
         
@@ -6690,13 +6697,13 @@ if(minDist<=0 && TVpars[0].dimRes2>1 ) {
 
 }
     
-for(int a=0;a<sampleNb;a++){//lopp over pre and postdisp samples
+for(size_t a=0;a<sampleNb;a++){//lopp over pre and postdisp samples
 //    for(auto& e : indGeoDist[a]) cout << e << " ";
 //    cout << endl;
 //    for(auto& e : genetDist[a]) cout << e << " ";
 //    cout << endl;
 
-    for (int i=0;i<indGeoDist[a].size();i++){
+    for (size_t i=0;i<indGeoDist[a].size();i++){
         if(indGeoDist[a][i]>minDist) {
             if(TVpars[0].dimRes2>1) locGeoDist.push_back( log( indGeoDist[a][i] ) );
             else locGeoDist.push_back( indGeoDist[a][i] );
@@ -6727,7 +6734,7 @@ for(int a=0;a<sampleNb;a++){//lopp over pre and postdisp samples
             exit(-1);
         }
         
-        for(int i=0;i<indGeoDist[a].size();i++) fgra << indGeoDist[a][i] << " " << genetDist[a][i] << endl;
+        for(size_t i=0;i<indGeoDist[a].size();i++) fgra << indGeoDist[a][i] << " " << genetDist[a][i] << endl;
         
         fgra.close();
     }

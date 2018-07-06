@@ -89,4 +89,4 @@ DispPars[1] is no longer xi but (limit) omega xi (=kappa dans charfunc.nb)*/
 	return fn_eval;
 /**/
 	}
-};
+}
