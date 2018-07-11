@@ -38,7 +38,7 @@ IBDSimExec<-"/Users/raph/Downloads/++Ajeter/Camille/IBDSim"
 
 ########################################################
 nbcores <- 5
-gr <- 50
+gr <- 500
 nR <- 1
 
 # gshape <- 0.25
@@ -77,11 +77,11 @@ corrSimuls <- project(simtable,projectors=list("g_shape_proj"=gproj,"em_rate_pro
 corrSobs <- project(sobs,projectors=list("g_shape_proj"=gproj,"em_rate_proj"=mproj,"hab_size_proj"=habsizeproj))
 
 #dens <- infer_SLik_joint(simtable,stat.obs=drop(sobs))
-dens <- infer_SLik_joint(corrSimuls,stat.obs=drop(corrSobs))
+dens <- infer_SLik_joint(corrSimuls,stat.obs=corrSobs)
 
 slik_j <-MSL(dens)
 # The slik object contains the ML estimates and 95% CIs:
-summary(slik)
+summary(slik_j)
 plot(slik_j)
 slik_j <- refine(slik_j,maxit=6,nb_cores = c(param=nbcores))
 plot(slik_j)
