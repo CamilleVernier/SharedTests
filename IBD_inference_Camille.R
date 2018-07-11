@@ -7,10 +7,10 @@ setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
 source("IBD_simulation_Camille.R") 
 
 if (interactive()) {options(error=recover)} else {
-#   options(echo = FALSE)
-#   options(error = quote(dump.frames(paste("dump",Sys.time(), "__grille=",gr, "__nloc=",n_loc, sep=""), TRUE)))
-# }
-options(warn=0)
+  options(echo = FALSE)
+  options(error = quote(dump.frames(paste("dump",Sys.time(), "__grille=",gr, "__nloc=",n_loc, sep=""), TRUE)))
+}
+# options(warn=0)
 options(error = quote(dump.frames(paste("/home/vernierc/Documents/GitCamille/SharedTests/Bugs/dump"
                                         ,gsub(" ", "_", Sys.time()), sep=""), TRUE)))
 
@@ -48,11 +48,6 @@ library(Infusion)
 library(caret)
 library(doSNOW)
 
-######################### INFUSION OPTIONS ######################### 
-
-Infusion.options(nb_cores = c(param=nbcores)) #parallelisation
-Infusion.options(nRealizations=c(as_one=nR))
-#Infusion.options(nRealizations=nR)
 
 ############################### PARAMETRES ############################## 
 
@@ -74,51 +69,58 @@ n_sim=1
 n_loc=20 
 Mu=5e-4 
 
-habitatSize=NULL
 dist_max=20
 
 g_obs <- 0.575
 m_obs <- 0.25
+habitatsize_obs=70
 
+######################### INFUSION OPTIONS ######################### 
+
+Infusion.options(nb_cores = c(param=nbcores)) #parallelisation
+Infusion.options(nRealizations=c(as_one=nR))
+#Infusion.options(nRealizations=nR)
 
 ######################### ECHELLE NON LOG ######################### 
 
 g_grille <- c(0, 1)
 m_grille <- c(0, 1)
-# habitatSize_bounds <-c(16,400)
+habitatsize_grille <-c(16,400)
 
-parsp <- init_grid(lower=c(g=g_grille[1],m=m_grille[1]),
-                   upper=c(g=g_grille[2],m=m_grille[2]),
+parsp <- init_grid(lower=c(g=g_grille[1],m=m_grille[1], habitatSize=habitatsize_grille[1]),
+                   upper=c(g=g_grille[2],m=m_grille[2], habitatSize=habitatsize_grille[2]),
                    nUnique=gr)
 
 parsp2 <- unique(parsp)
 
-# parsp <- init_grid(lower=c(g=g_grille[1],m=m_grille[1],habitatSize=habitatSize_bounds[1]),
-#                    upper=c(g=g_grille[2],m=m_grille[2],habitatSize=habitatSize_bounds[2]),
+# parsp <- init_grid(lower=c(g=g_grille[1],m=m_grille[1],habitatsize_obs=habitatsize_obs_grille[1]),
+#                    upper=c(g=g_grille[2],m=m_grille[2],habitatsize_obs=habitatsize_obs_grille[2]),
 #                    nUnique=gr)
 
-# sobs <- IBDSim_wrapper_IBD(habitatSize = habitatSizeObs, g = g_obs, m = m_obs, execName=IBDSimExec)
+# sobs <- IBDSim_wrapper_IBD(habitatsize_obs = habitatsize_obsObs, g = g_obs, m = m_obs, execName=IBDSimExec)
 
 
-sobs <- IBDSim_wrapper_IBD(g=g_obs, m=m_obs, mu=Mu, nloc=n_loc, lattice=latt, samp=sample,
-                           min_sample=minsample, D=d, nsim=n_sim, habitatSize=NULL, dist_max=20,
-                           execName=IBDSimExec)
+sobs <- IBDSim_wrapper_IBD(g=g_obs, m=m_obs, habitatSize=habitatsize_obs, mu=Mu, nloc=n_loc, 
+                           lattice=latt, samp=sample, min_sample=minsample, D=d, nsim=n_sim,  
+                           dist_max=20,execName=IBDSimExec)
 sobs
 
 
 
 simtable <- add_reftable(Simulate="IBDSim_wrapper_IBD", nloc=n_loc, par.grid=parsp2, 
-                         lattice=latt, samp=sample,min_sample=minsample, D=d,
-                         habitatSize=NULL, dist_max=20,execName=IBDSimExec,
+                         lattice=latt, samp=sample, min_sample=minsample, D=d,
+                          dist_max=20,execName=IBDSimExec,
                          nb_cores=c(param=nbcores))
+#simtable
 
 dens <- infer_SLik_joint(simtable,stat.obs=sobs)
 
 slik_j <- MSL(dens)
 plot(slik_j)
 
-slik_j <- refine(slik_j, maxit=5, nb_cores=c(param=nbcores))
+#slik_j <- refine(slik_j, maxit=5, nb_cores=c(param=nbcores))
 slik_j2 <- refine(slik_j, nb_cores=c(param=nbcores))
+plot(slik_j2)
 
 Rmixmod::plotCluster(slik_j$jointdens,slik_j$logLs,variable1 = "g",variable2="m")
 
@@ -133,25 +135,26 @@ allstats <- c("Hobs_moy","varHobs","Hexp_moy","varHexp","fis_moy","fis","nb_alle
 
 gproj <- project("g",stats=allstats,data=simtable,method="neuralNet")
 mproj <- project("m",stats=allstats,data=simtable,method="neuralNet")
-habsizeproj <- project("habitat_size",stats=allstats,data=simtable,method="neuralNet")
+habsizeproj <- project("habitatSize",stats=allstats,data=simtable,method="neuralNet")
 
 # We apply projections on simulated statistics:
 # corrSimuls <- project(simtable,projectors=list("g"=gproj,"m"=mproj,"habsize"=habsizeproj))
 # corrSobs <- project(sobs,projectors=list("g"=gproj,"m"=mproj,"habsize"=habsizeproj))
-corrSimuls <- project(simtable,projectors=list("g_p"=gproj,"m_p"=mproj))
-corrSobs <- project(sobs,projectors=list("g_p"=gproj,"m_p"=mproj))
+corrSimuls <- project(simtable,projectors=list("g_p"=gproj,"m_p"=mproj, "h_p"=habsizeproj))
+corrSobs <- project(sobs,projectors=list("g_p"=gproj,"m_p"=mproj,"h_p"=habsizeproj))
 
 dens <- infer_SLik_joint(corrSimuls,stat.obs=corrSobs)
 
-slik <- infer_surface(densv)
-slik <- MSL(slik)
-plot(slik, filled=TRUE)
+slik_j <- MSL(dens)
+plot(slik_j, filled=TRUE)
+slik_j <- refine(slik_j, maxit=5, nb_cores=c(param=nbcores))
+
 ###################################### ADD SIMULATION ###################################### 
-et <- Sys.time()
-simuls <- add_simulation(NULL,Simulate="IBDSim_wrapper_IBD", par.grid=parsp,nRealizations=c(as_one=nR), 
-                         nb_cores = nbcores, env=list2env(list(IBDSim_wrapper_IBD=IBDSim_wrapper_IBD)))
-time <- Sys.time()-et
-time
+# et <- Sys.time()
+# simuls <- add_simulation(NULL,Simulate="IBDSim_wrapper_IBD", par.grid=parsp,nRealizations=c(as_one=nR), 
+#                          nb_cores = nbcores, env=list2env(list(IBDSim_wrapper_IBD=IBDSim_wrapper_IBD)))
+# time <- Sys.time()-et
+# time
 
 
 ############################# ECHELLE LOG10 ############################# 
