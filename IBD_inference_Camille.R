@@ -57,7 +57,7 @@ IBDSimExec<-"../IBDSim"
 #IBDSimExec<-"/home/vernierc/Documents/GitCamille/SharedTests/IBDSim"
 
 nbcores <- 6
-gr <- 500
+gr <- 50
 nR <- 1
 
 latt=c(40,40)
@@ -73,6 +73,9 @@ dist_max=20
 
 g_obs <- 0.575
 m_obs <- 0.25
+log10_g_obs <- log10(g_obs)
+log10_m_obs <- log10(m_obs)
+log_10=TRUE
 habitatsize_obs=70
 
 ######################### INFUSION OPTIONS ######################### 
@@ -85,30 +88,35 @@ Infusion.options(nRealizations=c(as_one=nR))
 
 g_grille <- c(0, 1)
 m_grille <- c(0, 1)
-habitatsize_grille <-c(16,400)
+log10_g_grille <- c(-2, 0)
+log10_m_grille <- c(-2, 0)
+habitatsize_grille <-c(16,200)
 
-parsp <- init_grid(lower=c(g=g_grille[1],m=m_grille[1], habitatSize=habitatsize_grille[1]),
-                   upper=c(g=g_grille[2],m=m_grille[2], habitatSize=habitatsize_grille[2]),
+# parsp <- init_grid(lower=c(g=g_grille[1],m=m_grille[1], habitatSize=habitatsize_grille[1]),
+#                    upper=c(g=g_grille[2],m=m_grille[2], habitatSize=habitatsize_grille[2]),
+#                    nUnique=gr)
+
+parsp <- init_grid(lower=c(g=log10_g_grille[1],m=log10_m_grille[1], habitatSize=habitatsize_grille[1]),
+                   upper=c(g=log10_g_grille[2],m=log10_m_grille[2], habitatSize=habitatsize_grille[2]),
                    nUnique=gr)
 
 parsp2 <- unique(parsp)
 
-# parsp <- init_grid(lower=c(g=g_grille[1],m=m_grille[1],habitatsize_obs=habitatsize_obs_grille[1]),
-#                    upper=c(g=g_grille[2],m=m_grille[2],habitatsize_obs=habitatsize_obs_grille[2]),
-#                    nUnique=gr)
 
 # sobs <- IBDSim_wrapper_IBD(habitatsize_obs = habitatsize_obsObs, g = g_obs, m = m_obs, execName=IBDSimExec)
 
-
-sobs <- IBDSim_wrapper_IBD(g=g_obs, m=m_obs, habitatSize=habitatsize_obs, mu=Mu, nloc=n_loc, 
-                           lattice=latt, samp=sample, min_sample=minsample, D=d, nsim=n_sim,  
-                           dist_max=20,execName=IBDSimExec)
+# sobs <- IBDSim_wrapper_IBD(g=g_obs, m=m_obs, habitatSize=habitatsize_obs, mu=Mu, nloc=n_loc, 
+#                            lattice=latt, samp=sample, min_sample=minsample, D=d, nsim=n_sim,  
+#                            dist_max=20,execName=IBDSimExec)
+sobs <- IBDSim_wrapper_IBD(g=log10_g_obs, m=log10_m_obs, habitatSize=habitatsize_obs, mu=Mu, 
+                           log10=log_10, nloc=n_loc, lattice=latt, samp=sample, min_sample=minsample, 
+                           D=d, nsim=n_sim,dist_max=20,execName=IBDSimExec)
 sobs
 
 
 
 simtable <- add_reftable(Simulate="IBDSim_wrapper_IBD", nloc=n_loc, par.grid=parsp2, 
-                         lattice=latt, samp=sample, min_sample=minsample, D=d,
+                         lattice=latt, samp=sample, min_sample=minsample, D=d, log10=log_10,
                           dist_max=20,execName=IBDSimExec,
                          nb_cores=c(param=nbcores))
 #simtable
@@ -118,9 +126,8 @@ dens <- infer_SLik_joint(simtable,stat.obs=sobs)
 slik_j <- MSL(dens)
 plot(slik_j)
 
-#slik_j <- refine(slik_j, maxit=5, nb_cores=c(param=nbcores))
-slik_j2 <- refine(slik_j, nb_cores=c(param=nbcores))
-plot(slik_j2)
+slik_j <- refine(slik_j, maxit=5, nb_cores=c(param=nbcores))
+plot(slik_j)
 
 Rmixmod::plotCluster(slik_j$jointdens,slik_j$logLs,variable1 = "g",variable2="m")
 

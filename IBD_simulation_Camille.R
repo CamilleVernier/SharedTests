@@ -10,6 +10,7 @@ IBDSim_wrapper_IBD <-function(
                          nsim=1,
                          nloc=20, # number of loci
                          mu=5e-4, # mutation rate
+                         log10=FALSE,
                          g=0.575, # geometric shape
                          m=0.25, # total emigration rate
                          habitatSize=NULL,
@@ -30,7 +31,11 @@ IBDSim_wrapper_IBD <-function(
     min_sample=c( floor( floor(lattice[1]/2) - floor(samp[1]/2) ) ,floor( floor(lattice[2]/2) - floor(samp[2]/2) ) );
   }
 
-  
+  if( log10==TRUE )
+  {
+    g <- 10^g
+    m <- 10^m 
+  }
   # we write the input file for IBDsim:
   
   write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
