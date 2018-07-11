@@ -10,7 +10,8 @@ IBDSim_wrapper_IBD <-function(
                          nsim=1,
                          nloc=20, # number of loci
                          mu=5e-4, # mutation rate
-                         g_shape=0.575, # geometric shape
+                         log10=FALSE,
+                         g=0.575, # geometric shape
                          m=0.25, # total emigration rate
                          habitatSize=NULL,
                          dist_max=20,
@@ -30,7 +31,11 @@ IBDSim_wrapper_IBD <-function(
     min_sample=c( floor( floor(lattice[1]/2) - floor(samp[1]/2) ) ,floor( floor(lattice[2]/2) - floor(samp[2]/2) ) );
   }
 
-  
+  if( log10==TRUE )
+  {
+    g <- 10^g
+    m <- 10^m 
+  }
   # we write the input file for IBDsim:
   
   write.table(paste("%%%%% SIMULATION PARAMETERS %%%%%%%%%%%%
@@ -61,7 +66,7 @@ IBDSim_wrapper_IBD <-function(
                     
                     %% DISPERSAL
                     Dispersal_Distribution=g
-                    Geometric_Shape=",g_shape,"
+                    Geometric_Shape=",g,"
                     Total_Emigration_Rate=",m,"
                     MinDistReg=0.000001
                     Dist_max=",dist_max,"
@@ -111,7 +116,7 @@ IBDSim_wrapper_IBD <-function(
                         
                         %% DISPERSAL
                         Dispersal_Distribution=g
-                        Geometric_Shape=",g_shape,"
+                        Geometric_Shape=",g,"
                         Total_Emigration_Rate=",m,"
                         MinDistReg=0.000001
                         Dist_max=",dist_max,"
@@ -142,7 +147,7 @@ IBDSim_wrapper_IBD <-function(
       dat$fis <- 1-(hobs_moy/hexp_moy)
       nballele <- read.table("Iterative_Statistics_postdisp_PerLocus.txt",sep="",skip=1)[,(3*nloc+1):(4*nloc)]  
       dat$var_nballele <- apply(nballele,1,var)
-      dat$Dsigma2 <- D*nb_genes*((m*(1+g_shape))/(1-g_shape)^2)
+      dat$Dsigma2 <- D*((m*(1+g))/(1-g)^2)
       data2 <- dat[,c("Hobs_moy","varHobs","Hexp_moy","varHexp","fis_moy","fis","nb_allele_moyTotalSample","var_nballele","ar_slope","ar_intercept","er_slope","er_intercept")]  
       
       setwd("../")
@@ -154,7 +159,6 @@ IBDSim_wrapper_IBD <-function(
       
     }
   }
-  
   return(data2)
 }
 
@@ -178,7 +182,7 @@ IBDSim_wrapper_IBD_log10 <-function(
                             nsim=1,
                             nloc=20, # number of loci
                             mu=5e-4, # mutation rate
-                            g_shape=0.25, # geometric shape
+                            g=0.25, # geometric shape
                             m=0.45, # total emigration rate
                             dist_max=20,
                             execName="../IBDSim"){ # executable name
@@ -228,7 +232,7 @@ IBDSim_wrapper_IBD_log10 <-function(
                     
                     %% DISPERSAL
                     Dispersal_Distribution=g
-                    Geometric_Shape=",g_shape,"
+                    Geometric_Shape=",g,"
                     Total_Emigration_Rate=",m,"
                     MinDistReg=0.000001
                     Dist_max=",dist_max,"
@@ -276,7 +280,7 @@ IBDSim_wrapper_IBD_log10 <-function(
                         
                         %% DISPERSAL
                         Dispersal_Distribution=g
-                        Geometric_Shape=",g_shape,"
+                        Geometric_Shape=",g,"
                         Total_Emigration_Rate=",m,"
                         MinDistReg=0.000001
                         Dist_max=",dist_max,"
@@ -307,7 +311,7 @@ IBDSim_wrapper_IBD_log10 <-function(
       dat$fis <- 1-(hobs_moy/hexp_moy)
       nballele <- read.table("Iterative_Statistics_postdisp_PerLocus.txt",sep="",skip=1)[,(3*nloc+1):(4*nloc)]  
       dat$var_nballele <- apply(nballele,1,var)
-      dat$Dsigma2 <- D*nb_genes*((m*(1+g_shape))/(1-g_shape)^2)
+      dat$Dsigma2 <- D*((m*(1+g))/(1-g)^2)
       data2 <- dat[,c("Hobs_moy","varHobs","Hexp_moy","varHexp","fis_moy","fis","nb_allele_moyTotalSample","var_nballele","ar_slope","ar_intercept","er_slope","er_intercept")]  
       
       setwd("../")
