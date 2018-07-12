@@ -4,3 +4,17 @@
 	- couverture IC/CI (%age des IC qui contiennent la valeur simulée), 
 		voir plus (distribution des pValue des valeurs simulées, test KS, voir avec Raph & FR)
 
+2 - Question 1 : Peut on estimer la dispersion (m, g) sans stat spatiales ?
+	- on part de : inférence (g,m, ?mu?) avec taille habitat fixe = facile
+		1.1  est ce que ca marche sans statistiques spatiales (sans ar, er)
+			2 articles qui ont fait de l'inférence par simulation en spatial qui n'ont pas pris de stat spatiale et qui disent bien marcher. (Joseph et al, Ashander et al.)
+		1.2 est ce que ca marche sans statistiques spatiales (sans ar, er) si on estime aussi la taille de l'habitat.
+		
+		-> importance de considérer des stat spatiales.
+3 - question 2 : est que utiliser Q0, Q1,..., Qdist_max_sample apporte de l'information ? et juste avec les Q.
+
+4 - question : est il plus facile d'estimer ( (D) sigma2,m) que (g,m)
+
+5 (si RF marche correctement)- - Comparaison avec RF dans un cas simple = cas de base, + dans les cas de la question 3.
+
+6 comparer avec des méthodes alternatives disponibles =  la regression de Genepop/Rousset97/2000 et (Migraine, difficile, peut être juste illustrer sur un jeux de données)
