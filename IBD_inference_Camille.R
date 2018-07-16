@@ -2,17 +2,17 @@ rm(list = ls())
 
 # setwd(dir = "/work/cvernier/Infusion")
 # setwd(dir="/Users/raph/Downloads/++Ajeter/Camille/")
-setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
+ setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
 
 source("IBD_simulation_Camille.R") 
 
 if (interactive()) {options(error=recover)} else {
   options(echo = FALSE)
-  options(error = quote(dump.frames(paste("dump",Sys.time(), "__grille=",gr, "__nloc=",n_loc, sep=""), TRUE)))
+  options(error = quote(dump.frames(paste("dump",Sys.time(), sep=""), TRUE)))
 }
 # options(warn=0)
-options(error = quote(dump.frames(paste("/home/vernierc/Documents/GitCamille/SharedTests/Bugs/dump"
-                                        ,gsub(" ", "_", Sys.time()), sep=""), TRUE)))
+# options(error = quote(dump.frames(paste("/home/vernierc/Documents/GitCamille/SharedTests/Bugs/dump"
+#                                        ,gsub(" ", "_", Sys.time()), sep=""), TRUE)))
 
 
 ############################### FCT GET OS ############################### 
@@ -56,8 +56,8 @@ deb <- Sys.time()
 IBDSimExec<-"../IBDSim"
 #IBDSimExec<-"/home/vernierc/Documents/GitCamille/SharedTests/IBDSim"
 
-nbcores <- 6
-gr <- 50
+nbcores <- 10
+gr <- 200
 nR <- 1
 
 latt=c(40,40)
@@ -67,7 +67,7 @@ minsample=c(15,15)
 d=1
 n_sim=1
 n_loc=20 
-Mu=5e-4 
+Mu=5e-4
 
 dist_max=20
 
@@ -75,7 +75,7 @@ g_obs <- 0.575
 m_obs <- 0.25
 log10_g_obs <- log10(g_obs)
 log10_m_obs <- log10(m_obs)
-log_10=TRUE
+log_10=FALSE
 habitatsize_obs=70
 
 ######################### INFUSION OPTIONS ######################### 
@@ -90,27 +90,28 @@ g_grille <- c(0, 1)
 m_grille <- c(0, 1)
 log10_g_grille <- c(-2, 0)
 log10_m_grille <- c(-2, 0)
+#habitatsize_grille <-c(2,100)
 habitatsize_grille <-c(16,200)
 
-# parsp <- init_grid(lower=c(g=g_grille[1],m=m_grille[1], habitatSize=habitatsize_grille[1]),
-#                    upper=c(g=g_grille[2],m=m_grille[2], habitatSize=habitatsize_grille[2]),
-#                    nUnique=gr)
-
-parsp <- init_grid(lower=c(g=log10_g_grille[1],m=log10_m_grille[1], habitatSize=habitatsize_grille[1]),
-                   upper=c(g=log10_g_grille[2],m=log10_m_grille[2], habitatSize=habitatsize_grille[2]),
+parsp <- init_grid(lower=c(g=g_grille[1],m=m_grille[1], habitatSize=habitatsize_grille[1]),
+                   upper=c(g=g_grille[2],m=m_grille[2], habitatSize=habitatsize_grille[2]),
                    nUnique=gr)
+
+# parsp <- init_grid(lower=c(g=log10_g_grille[1],m=log10_m_grille[1], habitatSize=habitatsize_grille[1]),
+#                    upper=c(g=log10_g_grille[2],m=log10_m_grille[2], habitatSize=habitatsize_grille[2]),
+#                    nUnique=gr)
 
 parsp2 <- unique(parsp)
 
 
 # sobs <- IBDSim_wrapper_IBD(habitatsize_obs = habitatsize_obsObs, g = g_obs, m = m_obs, execName=IBDSimExec)
 
-# sobs <- IBDSim_wrapper_IBD(g=g_obs, m=m_obs, habitatSize=habitatsize_obs, mu=Mu, nloc=n_loc, 
-#                            lattice=latt, samp=sample, min_sample=minsample, D=d, nsim=n_sim,  
-#                            dist_max=20,execName=IBDSimExec)
-sobs <- IBDSim_wrapper_IBD(g=log10_g_obs, m=log10_m_obs, habitatSize=habitatsize_obs, mu=Mu, 
-                           log10=log_10, nloc=n_loc, lattice=latt, samp=sample, min_sample=minsample, 
-                           D=d, nsim=n_sim,dist_max=20,execName=IBDSimExec)
+sobs <- IBDSim_wrapper_IBD(g=g_obs, m=m_obs, habitatSize=habitatsize_obs, mu=Mu, nloc=n_loc,
+                           lattice=latt, samp=sample, min_sample=minsample, D=d, nsim=n_sim,
+                           dist_max=20,log10=log_10, execName=IBDSimExec)
+# sobs <- IBDSim_wrapper_IBD(g=log10_g_obs, m=log10_m_obs, habitatSize=habitatsize_obs, mu=Mu, 
+#                            log10=log_10, nloc=n_loc, lattice=latt, samp=sample, min_sample=minsample, 
+#                            D=d, nsim=n_sim,dist_max=20,execName=IBDSimExec)
 sobs
 
 
@@ -126,10 +127,10 @@ dens <- infer_SLik_joint(simtable,stat.obs=sobs)
 slik_j <- MSL(dens)
 plot(slik_j)
 
-slik_j <- refine(slik_j, maxit=5, nb_cores=c(param=nbcores))
+ slik_j <- refine(slik_j, maxit=5, nb_cores=c(param=nbcores))
 plot(slik_j)
 
-Rmixmod::plotCluster(slik_j$jointdens,slik_j$logLs,variable1 = "g",variable2="m")
+#Rmixmod::plotCluster(slik_j$jointdens,slik_j$logLs,variable1 = "g",variable2="m")
 
 
 # setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
@@ -150,11 +151,18 @@ habsizeproj <- project("habitatSize",stats=allstats,data=simtable,method="neural
 corrSimuls <- project(simtable,projectors=list("g_p"=gproj,"m_p"=mproj, "h_p"=habsizeproj))
 corrSobs <- project(sobs,projectors=list("g_p"=gproj,"m_p"=mproj,"h_p"=habsizeproj))
 
-dens <- infer_SLik_joint(corrSimuls,stat.obs=corrSobs)
+dens_proj <- infer_SLik_joint(corrSimuls,stat.obs=corrSobs)
 
-slik_j <- MSL(dens)
-plot(slik_j, filled=TRUE)
-slik_j <- refine(slik_j, maxit=5, nb_cores=c(param=nbcores))
+slik_j_proj <- MSL(dens_proj)
+plot(slik_j_proj, filled=TRUE)
+# slik_j <- refine(slik_j, maxit=5, nb_cores=c(param=nbcores))
+
+###################################### SAUVEGARDE ###################################### 
+tmp <- tempfile(pattern="Ana", tmpdir= ".",fileext=".txt")
+out_slik <- capture.output(summary(slik_j))
+cat(out_slik, file=tmp, sep="\n", append=TRUE)
+out_slik_proj <- capture.output(summary(slik_j_proj))
+cat(out_slik_proj, file=tmp, sep="\n", append=TRUE)
 
 ###################################### ADD SIMULATION ###################################### 
 # et <- Sys.time()
