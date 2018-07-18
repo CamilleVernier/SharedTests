@@ -2,7 +2,7 @@ rm(list = ls())
 
 # setwd(dir = "/work/cvernier/Infusion")
 # setwd(dir="/Users/raph/Downloads/++Ajeter/Camille/")
- setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
+# setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
 
 source("IBD_simulation_Camille.R") 
 
@@ -56,7 +56,10 @@ deb <- Sys.time()
 IBDSimExec<-"../IBDSim"
 #IBDSimExec<-"/home/vernierc/Documents/GitCamille/SharedTests/IBDSim"
 
-nbcores <- 6
+args = commandArgs(trailingOnly=TRUE)
+nbcores <- args[1]
+print(paste("nbcores=",nbcores))
+
 gr <- 200
 nR <- 1
 
@@ -200,12 +203,15 @@ for (j in 1:ntimes_iter)
   cat("\n\n", file=file_name_slik_proj, sep= "\n", append=TRUE)
 }
 
-tmp <- tempfile(pattern="Ana", tmpdir= ".",fileext=".txt")
-out_slik <- capture.output(summary(slik_j))
-cat(out_slik, file=tmp, sep="\n", append=TRUE)
-out_slik_proj <- capture.output(summary(slik_j_proj))
-cat(out_slik_proj, file=tmp, sep="\n", append=TRUE)
+# tmp <- tempfile(pattern="Ana", tmpdir= ".",fileext=".txt")
+# out_slik <- capture.output(summary(slik_j))
+# cat(out_slik, file=tmp, sep="\n", append=TRUE)
+# out_slik_proj <- capture.output(summary(slik_j_proj))
+# cat(out_slik_proj, file=tmp, sep="\n", append=TRUE)
 
+cat(slik_j$MSL$MSLE,"\n", file="Resultats.txt")
+cat(slik_j$lower,"\n", file="Resultats.txt", append=TRUE)
+cat(slik_j$upper,"\n", file="Resultats.txt", append=TRUE)
 
 ###################################### ADD SIMULATION ###################################### 
 # et <- Sys.time()
