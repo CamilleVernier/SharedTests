@@ -8,7 +8,7 @@ source("IBD_simulation_Camille.R")
 
 if (interactive()) {options(error=recover)} else {
   options(echo = FALSE)
-  options(error = quote(dump.frames(paste("dump",Sys.time(), sep=""), TRUE)))
+  options(error = quote(dump.frames(paste("dump",gsub(" ", "_", Sys.time()), sep=""), TRUE)))
 }
 # options(warn=0)
 # options(error = quote(dump.frames(paste("/home/vernierc/Documents/GitCamille/SharedTests/Bugs/dump"
@@ -43,22 +43,27 @@ if (interactive()) {options(error=recover)} else {
 
 ######################### LIBRARIES ######################### 
 
-
+# 
 library(Infusion)
 library(caret)
 library(doSNOW)
+library(TeachingDemos)
 
 
 ############################### PARAMETRES ############################## 
 
+#txtStart("./temp50.txt") #capture input and output in a txt file
 deb <- Sys.time()
+print(deb)
 
 IBDSimExec<-"../IBDSim"
 #IBDSimExec<-"/home/vernierc/Documents/GitCamille/SharedTests/IBDSim"
 
 args = commandArgs(trailingOnly=TRUE)
-nbcores <- args[1]
-print(paste("nbcores=",nbcores))
+for(i in 1:length(args)){
+  eval(parse(text=args[[i]]))
+}
+print(paste(nbcores))
 
 gr <- 200
 nR <- 1
@@ -69,7 +74,7 @@ minsample=c(15,15)
 
 d=1
 n_sim=1
-n_loc=20 
+n_loc=20
 Mu=5e-4
 
 dist_max=20
@@ -81,13 +86,13 @@ log10_m_obs <- log10(m_obs)
 log_10=FALSE
 habitatsize_obs=70
 
-######################### INFUSION OPTIONS ######################### 
+######################### INFUSION OPTIONS #########################
 
 Infusion.options(nb_cores = c(param=nbcores)) #parallelisation
 Infusion.options(nRealizations=c(as_one=nR))
 #Infusion.options(nRealizations=nR)
 
-######################### ECHELLE NON LOG ######################### 
+######################### ECHELLE NON LOG #########################
 
 g_grille <- c(0, 1)
 m_grille <- c(0, 1)
@@ -112,18 +117,20 @@ parsp2 <- unique(parsp)
 sobs <- IBDSim_wrapper_IBD(g=g_obs, m=m_obs, habitatSize=habitatsize_obs, mu=Mu, nloc=n_loc,
                            lattice=latt, samp=sample, min_sample=minsample, D=d, nsim=n_sim,
                            dist_max=20,log10=log_10, execName=IBDSimExec)
-# sobs <- IBDSim_wrapper_IBD(g=log10_g_obs, m=log10_m_obs, habitatSize=habitatsize_obs, mu=Mu, 
-#                            log10=log_10, nloc=n_loc, lattice=latt, samp=sample, min_sample=minsample, 
+# sobs <- IBDSim_wrapper_IBD(g=log10_g_obs, m=log10_m_obs, habitatSize=habitatsize_obs, mu=Mu,
+#                            log10=log_10, nloc=n_loc, lattice=latt, samp=sample, min_sample=minsample,
 #                            D=d, nsim=n_sim,dist_max=20,execName=IBDSimExec)
 sobs
 
 
 
-simtable <- add_reftable(Simulate="IBDSim_wrapper_IBD", nloc=n_loc, par.grid=parsp2, 
+simtable <- add_reftable(Simulate="IBDSim_wrapper_IBD", nloc=n_loc, par.grid=parsp2,
                          lattice=latt, samp=sample, min_sample=minsample, D=d, log10=log_10,
-                          dist_max=20,execName=IBDSimExec,
+                         dist_max=20,execName=IBDSimExec,
+                         env=list2env(list(IBDSim_wrapper_IBD=IBDSim_wrapper_IBD)),
                          nb_cores=c(param=nbcores))
 #simtable
+#txtStop()
 
 dens <- infer_SLik_joint(simtable,stat.obs=sobs)
 
@@ -137,9 +144,9 @@ plot(slik_j)
 
 
 # setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
-# source("IBD_simulation_Camille.R") 
+# source("IBD_simulation_Camille.R")
 
-###################################### PROJECTIONS ###################################### 
+###################################### PROJECTIONS ######################################
 
 allstats <- c("Hobs_moy","varHobs","Hexp_moy","varHexp","fis_moy","fis","nb_allele_moyTotalSample",
               "var_nballele","ar_slope","ar_intercept","er_slope","er_intercept")
@@ -162,9 +169,9 @@ plot(slik_j_proj, filled=TRUE)
 
 pval <- dchisq(2*(slik_j$MSL$maxlogL-predict(slik_j, newdata=c(g_obs,m_obs,habitatsize_obs))[1]), df=2)
 
-###################################### SAUVEGARDE SLIK ###################################### 
-file_name_slik <- "Refine"
-file_name_slik_proj <- "Refine_proj"
+###################################### SAUVEGARDE SLIK ######################################
+file_name_slik <- "Refine.txt"
+file_name_slik_proj <- "Refine_proj.txt"
 niterations <- 3
 ntimes_iter <- 3
 niterations_total <- ntimes_iter*niterations
@@ -172,12 +179,12 @@ slik0 <- slik_j
 slik0_proj <- slik_j_proj
 
 out_slik0 <- capture.output(summary(slik0))
-cat(out_slik0, file=file_name_slik, sep= "\n", append=FALSE)
-cat("\n\n", file=file_name_slik, sep= "\n", append=TRUE)
+write(cat(out_slik0, file=file_name_slik, sep= "\n", append=FALSE))
+write(cat("\n\n", file=file_name_slik, sep= "\n", append=TRUE))
 
 out_slik_proj <- capture.output(summary(slik0_proj))
-cat(out_slik_proj, file=file_name_slik, sep= "\n", append=FALSE)
-cat("\n\n", file=file_name_slik, sep= "\n", append=TRUE)
+write(cat(out_slik_proj, file=file_name_slik, sep= "\n", append=FALSE))
+write(cat("\n\n", file=file_name_slik, sep= "\n", append=TRUE))
 
 for (j in 1:ntimes_iter)
 {
@@ -191,16 +198,16 @@ for (j in 1:ntimes_iter)
   assign(name_slik, slik_j)
   test_assign <- assign(name_slik, slik_j)
   test_out <- assign(name_out, capture.output(summary(test_assign)))
-  cat(test_out, file=file_name_slik, sep= "\n", append=TRUE)
-  cat("\n\n", file=file_name_slik, sep= "\n", append=TRUE)
+  write(cat(test_out, file=file_name_slik, sep= "\n", append=TRUE))
+  write(cat("\n\n", file=file_name_slik, sep= "\n", append=TRUE))
 
   name_slik_proj <- paste("slik_proj", j, sep="")
   name_out_proj <- paste("out_proj", i, sep="")
   assign(name_slik_proj, slik_j_proj)
   test_assign_proj <- assign(name_slik_proj, slik_j_proj)
   test_out_proj <- assign(name_out_proj, capture.output(summary(test_assign_proj)))
-  cat(test_out_proj, file=file_name_slik_proj, sep= "\n", append=TRUE)
-  cat("\n\n", file=file_name_slik_proj, sep= "\n", append=TRUE)
+  write(cat(test_out_proj, file=file_name_slik_proj, sep= "\n", append=TRUE))
+  write(cat("\n\n", file=file_name_slik_proj, sep= "\n", append=TRUE))
 }
 
 # tmp <- tempfile(pattern="Ana", tmpdir= ".",fileext=".txt")
@@ -209,11 +216,19 @@ for (j in 1:ntimes_iter)
 # out_slik_proj <- capture.output(summary(slik_j_proj))
 # cat(out_slik_proj, file=tmp, sep="\n", append=TRUE)
 
-cat(slik_j$MSL$MSLE,"\n", file="Resultats.txt")
-cat(slik_j$lower,"\n", file="Resultats.txt", append=TRUE)
-cat(slik_j$upper,"\n", file="Resultats.txt", append=TRUE)
+fin <- Sys.time()
+duree <- fin - deb
+print(duree)
 
-###################################### ADD SIMULATION ###################################### 
+deb <- gsub(" ", "_", deb)
+
+write(cat(slik_j$MSL$MSLE,"\n", file=paste(deb,"Resultats.txt", sep="")))
+write(cat(slik_j$lower,"\n", file=paste(deb,"Resultats.txt", sep=""), append=TRUE))
+write(cat(slik_j$upper,"\n", file=paste(deb,"Resultats.txt", sep=""), append=TRUE))
+
+save.image(file=paste(gsub(" ", "_", deb),".Rdata", sep=""))
+#txtStop()
+###################################### ADD SIMULATION ######################################
 # et <- Sys.time()
 # simuls2 <- add_simulation(NULL,Simulate="IBDSim_wrapper_IBD", par.grid=parsp,nRealizations=c(as_one=nR),
 #                          nb_cores = 7, env=list2env(list(IBDSim_wrapper_IBD=IBDSim_wrapper_IBD)))
@@ -221,25 +236,25 @@ cat(slik_j$upper,"\n", file="Resultats.txt", append=TRUE)
 # time
 
 
-############################# ECHELLE LOG10 ############################# 
+############################# ECHELLE LOG10 #############################
 #  g_obs <- 0.25
 #  m_obs <- 0.45
-# 
+#
 # # g_grille <- c(0, 1)
 # # m_grille <- c(0, 1)
-# 
+#
 # log10g_obs <- log10(0.25)
 # log10m_obs <- log10(0.45)
-# 
+#
 # log10g_grille <- c(-2, 0)
 # log10m_grille <- c(-2, 0)
-# 
-# 
-# 
+#
+#
+#
 # parsp <- init_grid(lower=c(log10g_obs=log10g_grille[1],log10m=log10m_grille[1]),
 #                    upper=c(log10g_obs=log10g_grille[2],log10m=log10m_grille[2]),
 #                    nUnique=gr)
-# 
+#
 # parsp2 <- unique(parsp)
 ##############################################"
 
