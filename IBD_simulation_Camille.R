@@ -3,7 +3,7 @@
 ########################################################################
 
 IBDSim_wrapper_IBD <-function(
-                         lattice=c(40,40),
+                         lattice=c(70,70),
                          samp=c(15,15),
                          min_sample=c(15,15),
                          D=1,
@@ -131,7 +131,7 @@ IBDSim_wrapper_IBD <-function(
       qnames<-NULL
       for (i in 1:samp[1]) 
       {
-        name <- paste("Qr(", i-1, ")", sep="")
+        name <- paste("Qr", i-1, sep="")
         qnames <- c(qnames,name)
       }
       
@@ -148,7 +148,7 @@ IBDSim_wrapper_IBD <-function(
       nballele <- read.table("Iterative_Statistics_postdisp_PerLocus.txt",sep="",skip=1)[,(3*nloc+1):(4*nloc)]  
       dat$var_nballele <- apply(nballele,1,var)
       dat$Dsigma2 <- D*((m*(1+g))/(1-g)^2)
-      data2 <- dat[,c("Hobs_moy","varHobs","Hexp_moy","varHexp","fis_moy","fis","nb_allele_moyTotalSample","var_nballele","ar_slope","ar_intercept","er_slope","er_intercept")]  
+      data2 <- dat[,c("Hobs_moy","varHobs","Hexp_moy","varHexp","fis_moy","fis","nb_allele_moyTotalSample","var_nballele",qnames,"ar_slope","ar_intercept","er_slope","er_intercept")]  
       
       setwd("../")
       if(tries<3) unlink(dir1, recursive =TRUE) 
@@ -167,17 +167,17 @@ IBDSim_wrapper_IBD <-function(
 ########################################################################
 ###########          ITERATION IBDSIM - ABCRF           ################     
 ########################################################################
-
-
-iter_ibdsim <- function(i, simg, simm, simhabitatsize, execName=IBDSimExec)
-{
-  return(c(simg[i], simm[i], simhabitatsize[i], 
-           IBDSim_wrapper_IBD(g=log10_g_obs, m=log10_m_obs, habitatSize=habitatsize_obs, mu=Mu,
-                              log10=log_10, nloc=n_loc, lattice=latt, samp=sample, min_sample=minsample,
-                              D=d, nsim=n_sim,dist_max=20,execName=IBDSimExec)))
-}
-
-
+# 
+# 
+# iter_ibdsim <- function(i, simg, simm, simhabitatsize, execName=IBDSimExec)
+# {
+#   return(c(simg[i], simm[i], simhabitatsize[i], 
+#            IBDSim_wrapper_IBD(g=simg[i], m=simm[i], habitatSize=simhabitatsize[i], mu=Mu,
+#                               nloc=n_loc, lattice=latt, samp=sample,min_sample=minsample,
+#                               log10=log_10,D=d, nsim=n_sim,dist_max=20,execName=IBDSimExec)))
+# }
+# 
+# 
 
 ########################################################################
 ###########          IBDSim_Wrapper_IBD_log10           ################     

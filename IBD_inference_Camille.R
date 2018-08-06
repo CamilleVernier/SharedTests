@@ -68,7 +68,7 @@ print(paste(nbcores))
 gr <- 200
 nR <- 1
 
-latt=c(40,40)
+latt=c(70,70)
 sample=c(15,15)
 minsample=c(15,15)
 
@@ -147,9 +147,15 @@ plot(slik_j)
 # source("IBD_simulation_Camille.R")
 
 ###################################### PROJECTIONS ######################################
+qnames<-NULL
+for (i in 1:sample[1]) 
+{
+  name <- paste("Qr", i-1, sep="")
+  qnames <- c(qnames,name)
+}
 
 allstats <- c("Hobs_moy","varHobs","Hexp_moy","varHexp","fis_moy","fis","nb_allele_moyTotalSample",
-              "var_nballele","ar_slope","ar_intercept","er_slope","er_intercept")
+              "var_nballele", qnames, "ar_slope","ar_intercept","er_slope","er_intercept")
 
 gproj <- project("g",stats=allstats,data=simtable,method="neuralNet")
 mproj <- project("m",stats=allstats,data=simtable,method="neuralNet")
@@ -179,12 +185,12 @@ slik0 <- slik_j
 slik0_proj <- slik_j_proj
 
 out_slik0 <- capture.output(summary(slik0))
-write(cat(out_slik0, file=file_name_slik, sep= "\n", append=FALSE))
-write(cat("\n\n", file=file_name_slik, sep= "\n", append=TRUE))
+# write(cat(out_slik0, file=file_name_slik, sep= "\n"), append=FALSE)
+# write(cat("\n\n", file=file_name_slik, sep= "\n"), append=TRUE)
 
 out_slik_proj <- capture.output(summary(slik0_proj))
-write(cat(out_slik_proj, file=file_name_slik, sep= "\n", append=FALSE))
-write(cat("\n\n", file=file_name_slik, sep= "\n", append=TRUE))
+# write(cat(out_slik_proj, file=file_name_slik, sep= "\n"), append=FALSE)
+# write(cat("\n\n", file=file_name_slik, sep= "\n"), append=TRUE)
 
 for (j in 1:ntimes_iter)
 {
@@ -198,16 +204,16 @@ for (j in 1:ntimes_iter)
   assign(name_slik, slik_j)
   test_assign <- assign(name_slik, slik_j)
   test_out <- assign(name_out, capture.output(summary(test_assign)))
-  write(cat(test_out, file=file_name_slik, sep= "\n", append=TRUE))
-  write(cat("\n\n", file=file_name_slik, sep= "\n", append=TRUE))
+  # write(cat(test_out, file=file_name_slik, sep= "\n"), append=TRUE)
+  # write(cat("\n\n", file=file_name_slik, sep= "\n"), append=TRUE)
 
   name_slik_proj <- paste("slik_proj", j, sep="")
   name_out_proj <- paste("out_proj", i, sep="")
   assign(name_slik_proj, slik_j_proj)
   test_assign_proj <- assign(name_slik_proj, slik_j_proj)
   test_out_proj <- assign(name_out_proj, capture.output(summary(test_assign_proj)))
-  write(cat(test_out_proj, file=file_name_slik_proj, sep= "\n", append=TRUE))
-  write(cat("\n\n", file=file_name_slik_proj, sep= "\n", append=TRUE))
+  # write(cat(test_out_proj, file=file_name_slik_proj, sep= "\n"), append=TRUE)
+  # write(cat("\n\n", file=file_name_slik_proj, sep= "\n"), append=TRUE)
 }
 
 # tmp <- tempfile(pattern="Ana", tmpdir= ".",fileext=".txt")
@@ -222,11 +228,16 @@ print(duree)
 
 deb <- gsub(" ", "_", deb)
 
-write(cat(slik_j$MSL$MSLE,"\n", file=paste(deb,"Resultats.txt", sep="")))
-write(cat(slik_j$lower,"\n", file=paste(deb,"Resultats.txt", sep=""), append=TRUE))
-write(cat(slik_j$upper,"\n", file=paste(deb,"Resultats.txt", sep=""), append=TRUE))
+# write(cat(slik_j$MSL$MSLE,"\n", file=paste(deb,"Resultats.txt", sep="")))
+# write(cat(slik_j$lower,"\n", file=paste(deb,"Resultats.txt", sep="")), append=TRUE)
+# write(cat(slik_j$upper,"\n", file=paste(deb,"Resultats.txt", sep="")), append=TRUE)
+write(c(slik_j$MSL$MSLE,"\n",slik_j$CIobject$CIs$g$interval, "\n", slik_j$CIobject$CIs$m$interval, "\n", slik_j$CIobject$CIs$habitatSize$interval), file="Resultats.txt")
 
 save.image(file=paste(gsub(" ", "_", deb),".Rdata", sep=""))
+
+
+
+
 #txtStop()
 ###################################### ADD SIMULATION ######################################
 # et <- Sys.time()
