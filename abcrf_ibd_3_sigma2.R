@@ -480,7 +480,7 @@ biais1_med_without_Q <- mean(pred.theta1_without_Q$med) - theta1_obs
 biais1_med_without_ar_er <- mean(pred.theta1_without_ar_er$med) - theta1_obs
 biais1_med_without_ar_er_Q <- mean(pred.theta1_without_ar_er_Q$med) - theta1_obs
 
-biais1_med_relatif <- (mean(pred.theta1$med) - theta1_obs)/theta1_obs
+biais1_med_relatif <- (mean(pred.theta1$med - theta1_obs))/theta1_obs
 biais1_med_relatif_without_Q <- (mean(pred.theta1_without_Q$med) - theta1_obs)/theta1_obs
 biais1_med_relatif_without_ar_er <- (mean(pred.theta1_without_ar_er$med) - theta1_obs)/theta1_obs
 biais1_med_relatif_without_ar_er_Q <- (mean(pred.theta1_without_ar_er_Q$med) - theta1_obs)/theta1_obs
@@ -520,46 +520,42 @@ biais4_med_without_ar_er <- mean(pred.theta4_without_ar_er$med) - theta4_obs
 biais4_med_without_ar_er_Q <- mean(pred.theta4_without_ar_er_Q$med) - theta4_obs
 
 ########################    NMAE    ########################
-for (i in 1:4) {
-  name <- paste("NMAE",i,sep="")
-  tr_n <- paste("train",i, sep="")
-  tr <- eval(parse(text=tr_n))
-  pr_n <- paste("pred.theta",i,"$expectation", sep="")
-  pr <- eval(parse(text=pr_n))
-  nmae <- mean(abs((tr[,1]-pr)/tr[,1]))
-  assign(name, nmae)
-  
-  name <- paste("NMAE",i,"_without_Q",sep="")
-  tr_n <- paste("train",i,"_without_Q", sep="")
-  tr <- eval(parse(text=tr_n))
-  pr_n <- paste("pred.theta",i,"_without_Q$expectation", sep="")
-  pr <- eval(parse(text=pr_n))
-  nmae <- mean(abs((tr[,1]-pr)/tr[,1]))
-  assign(name, nmae)
-  
-  name <- paste("NMAE",i,"_without_ar_er",sep="")
-  tr_n <- paste("train",i,"_without_ar_er", sep="")
-  tr <- eval(parse(text=tr_n))
-  pr_n <- paste("pred.theta",i,"_without_ar_er$expectation", sep="")
-  pr <- eval(parse(text=pr_n))
-  nmae <- mean(abs((tr[,1]-pr)/tr[,1]))
-  assign(name, nmae)
-  
-  name <- paste("NMAE",i,"_without_ar_er_Q",sep="")
-  tr_n <- paste("train",i,"_without_ar_er_Q", sep="")
-  tr <- eval(parse(text=tr_n))
-  pr_n <- paste("pred.theta",i,"_without_ar_er_Q$expectation", sep="")
-  pr <- eval(parse(text=pr_n))
-  nmae <- mean(abs((tr[,1]-pr)/tr[,1]))
-  assign(name, nmae)
-}
-# NMAE <- mean(abs((train3_without_Q[,1]-pred.theta3_without_Q$expectation)/train3_without_Q[,1]))
-
-NMAE1_med <- mean(abs((train1[1:100,1]-pred.theta1$med)/train1[1:100,1]))
-
 
 NMAE1 <- mean(abs((theta1_obs-pred.theta1$expectation)/theta1_obs))
 NMAE1_med <- mean(abs((theta1_obs-pred.theta1$med)/theta1_obs))
+NMAE1_without_Q <- mean(abs((theta1_obs-pred.theta1_without_Q$expectation)/theta1_obs))
+NMAE1_med_without_Q <- mean(abs((theta1_obs-pred.theta1_without_Q$med)/theta1_obs))
+NMAE1_without_ar_er <- mean(abs((theta1_obs-pred.theta1_without_ar_er$expectation)/theta1_obs))
+NMAE1_med_without_ar_er <- mean(abs((theta1_obs-pred.theta1_without_ar_er$med)/theta1_obs))
+NMAE1_without_ar_er_Q <- mean(abs((theta1_obs-pred.theta1_without_ar_er_Q$expectation)/theta1_obs))
+NMAE1_med_without_ar_er_Q <- mean(abs((theta1_obs-pred.theta1_without_ar_er_Q$med)/theta1_obs))
+
+NMAE2 <- mean(abs((theta2_obs-pred.theta2$expectation)/theta2_obs))
+NMAE2_med <- mean(abs((theta2_obs-pred.theta2$med)/theta2_obs))
+NMAE2_without_Q <- mean(abs((theta2_obs-pred.theta2_without_Q$expectation)/theta2_obs))
+NMAE2_med_without_Q <- mean(abs((theta2_obs-pred.theta2_without_Q$med)/theta2_obs))
+NMAE2_without_ar_er <- mean(abs((theta2_obs-pred.theta2_without_ar_er$expectation)/theta2_obs))
+NMAE2_med_without_ar_er <- mean(abs((theta2_obs-pred.theta2_without_ar_er$med)/theta2_obs))
+NMAE2_without_ar_er_Q <- mean(abs((theta2_obs-pred.theta2_without_ar_er_Q$expectation)/theta2_obs))
+NMAE2_med_without_ar_er_Q <- mean(abs((theta2_obs-pred.theta2_without_ar_er_Q$med)/theta2_obs))
+
+NMAE3 <- mean(abs((theta3_obs-pred.theta3$expectation)/theta3_obs))
+NMAE3_med <- mean(abs((theta3_obs-pred.theta3$med)/theta3_obs))
+NMAE3_without_Q <- mean(abs((theta3_obs-pred.theta3_without_Q$expectation)/theta3_obs))
+NMAE3_med_without_Q <- mean(abs((theta3_obs-pred.theta3_without_Q$med)/theta3_obs))
+NMAE3_without_ar_er <- mean(abs((theta3_obs-pred.theta3_without_ar_er$expectation)/theta3_obs))
+NMAE3_med_without_ar_er <- mean(abs((theta3_obs-pred.theta3_without_ar_er$med)/theta3_obs))
+NMAE3_without_ar_er_Q <- mean(abs((theta3_obs-pred.theta3_without_ar_er_Q$expectation)/theta3_obs))
+NMAE3_med_without_ar_er_Q <- mean(abs((theta3_obs-pred.theta3_without_ar_er_Q$med)/theta3_obs))
+
+NMAE4 <- mean(abs((theta4_obs-pred.theta4$expectation)/theta4_obs))
+NMAE4_med <- mean(abs((theta4_obs-pred.theta4$med)/theta4_obs))
+NMAE4_without_Q <- mean(abs((theta4_obs-pred.theta4_without_Q$expectation)/theta4_obs))
+NMAE4_med_without_Q <- mean(abs((theta4_obs-pred.theta4_without_Q$med)/theta4_obs))
+NMAE4_without_ar_er <- mean(abs((theta4_obs-pred.theta4_without_ar_er$expectation)/theta4_obs))
+NMAE4_med_without_ar_er <- mean(abs((theta4_obs-pred.theta4_without_ar_er$med)/theta4_obs))
+NMAE4_without_ar_er_Q <- mean(abs((theta4_obs-pred.theta4_without_ar_er_Q$expectation)/theta4_obs))
+NMAE4_med_without_ar_er_Q <- mean(abs((theta4_obs-pred.theta4_without_ar_er_Q$med)/theta4_obs))
 
 
 ########################    PREDICT OOB    ########################
@@ -617,9 +613,9 @@ par(mfrow=c(2, 2))
 plot(model1, main="Estimation du paramètre g")
 plot(model2, main="Estimation du paramètre m")
 plot(model3, main="Estimation du paramètre habitatsize")
+plot(model4, main="Estimation du paramètre sigma2")
 par(mfrow=c(1, 1))
 par(op)
-plot(model1_without_Q, main="Estimation du paramètre g")
 
 
 #########################   RESULTS   ######################### 
@@ -627,11 +623,15 @@ plot(model1_without_Q, main="Estimation du paramètre g")
 results1 <- rbind(c(mean(pred.theta1$expectation), mean(pred.theta1_without_Q$expectation), mean(pred.theta1_without_ar_er$expectation), mean(pred.theta1_without_ar_er_Q$expectation)),
                   c(mean(pred.theta1$med), mean(pred.theta1_without_Q$med), mean(pred.theta1_without_ar_er$med), mean(pred.theta1_without_ar_er_Q$med)),
                   c(biais1, biais1_without_Q, biais1_without_ar_er, biais1_without_ar_er_Q),
+                  c(biais1_relatif, biais1_relatif_without_Q, biais1_relatif_without_ar_er, biais1_relatif_without_ar_er_Q),
                   c(var(pred.theta1$expectation), var(pred.theta1_without_Q$expectation), var(pred.theta1_without_ar_er$expectation), var(pred.theta1_without_ar_er_Q$expectation)),
-                  c(MSE1, MSE1_without_Q, MSE1_without_ar_er,MSE1_without_ar_er_Q),                  
+                  c(MSE1, MSE1_without_Q, MSE1_without_ar_er,MSE1_without_ar_er_Q),
+                  c(MSE1_med, MSE1_med_without_Q, MSE1_med_without_ar_er,MSE1_med_without_ar_er_Q),                  
                   c(NMAE1, NMAE1_without_Q, NMAE1_without_ar_er,NMAE1_without_ar_er_Q),
-                  OOB_results1)
-rownames(results1) <- c("Valeur moyenne", "Valeur médiane","Biais","Variance", "MSE","NMAE", "OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
+                  c(NMAE1_med, NMAE1_med_without_Q, NMAE1_med_without_ar_er,NMAE1_med_without_ar_er_Q))
+                  #OOB_results1)
+rownames(results1) <- c("Valeur moyenne", "Valeur médiane","Biais", "Biais relatif","Variance", "MSE", "MSE med","NMAE", "NMAE med")
+                        #, "OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
 
 results2 <- rbind(c(mean(pred.theta2$expectation), mean(pred.theta2_without_Q$expectation), mean(pred.theta2_without_ar_er$expectation), mean(pred.theta2_without_ar_er_Q$expectation)),
                   c(biais2, biais2_without_Q, biais2_without_ar_er, biais2_without_ar_er_Q),

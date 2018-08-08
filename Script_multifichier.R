@@ -11,9 +11,9 @@
 # setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
 
 ##################  PARAMETRES OBSERVES   ##################  
-g_obs <- 0.575
-m_obs <- 0.25
-h_obs <- 70
+# g_obs <- 0.575
+# m_obs <- 0.25
+# h_obs <- 70
 
 ##################  SOUMISSIONSUR LE CLUSTER   ##################
 bug_simu <- 0
@@ -23,7 +23,7 @@ for(i in 1:length(args)){
   eval(parse(text=args[[i]]))
 }
 
-name_folder <- paste("Cas2_avec_Q", sep="_")
+name_folder <- paste("Cas_avec_Q_grille=",gr, gsub(" ", "_", Sys.time()), sep="_")
 dir.create(name_folder)
 setwd(dir = name_folder)
 file.copy(c("../IBD_inference_Camille.R", "../IBD_simulation_Camille.R","../IBDSim"), "./")

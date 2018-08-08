@@ -47,7 +47,7 @@ if (interactive()) {options(error=recover)} else {
 library(Infusion)
 library(caret)
 library(doSNOW)
-library(TeachingDemos)
+#library(TeachingDemos)
 
 
 ############################### PARAMETRES ############################## 
@@ -65,7 +65,7 @@ for(i in 1:length(args)){
 }
 print(paste(nbcores))
 
-gr <- 200
+gr <- 300
 nR <- 1
 
 latt=c(70,70)
@@ -79,7 +79,7 @@ Mu=5e-4
 
 dist_max=20
 
-g_obs <- 0.575
+g_obs <- 0.558615
 m_obs <- 0.25
 log10_g_obs <- log10(g_obs)
 log10_m_obs <- log10(m_obs)
@@ -129,13 +129,20 @@ simtable <- add_reftable(Simulate="IBDSim_wrapper_IBD", nloc=n_loc, par.grid=par
                          dist_max=20,execName=IBDSimExec,
                          env=list2env(list(IBDSim_wrapper_IBD=IBDSim_wrapper_IBD)),
                          nb_cores=c(param=nbcores))
-#simtable
-#txtStop()
 
-dens <- infer_SLik_joint(simtable,stat.obs=sobs)
+fin_tps_sim <- Sys.time()
+duree_sim <- fin_tps_sim - deb
+print(duree_sim)
 
-slik_j <- MSL(dens)
-plot(slik_j)
+##################### SANS PROJECTION ##################### 
+
+# dens <- infer_SLik_joint(simtable,stat.obs=sobs)
+# 
+# slik_j <- MSL(dens)
+# plot(slik_j)
+
+###############################################################   
+
 
 #   slik_j <- refine(slik_j, maxit=3, nb_cores=c(param=nbcores))
 # plot(slik_j)
@@ -147,6 +154,8 @@ plot(slik_j)
 # source("IBD_simulation_Camille.R")
 
 ###################################### PROJECTIONS ######################################
+deb2 <- Sys.time()
+
 qnames<-NULL
 for (i in 1:sample[1]) 
 {
@@ -176,15 +185,15 @@ plot(slik_j_proj, filled=TRUE)
 pval <- dchisq(2*(slik_j$MSL$maxlogL-predict(slik_j, newdata=c(g_obs,m_obs,habitatsize_obs))[1]), df=2)
 
 ###################################### SAUVEGARDE SLIK ######################################
-file_name_slik <- "Refine.txt"
+#file_name_slik <- "Refine.txt"
 file_name_slik_proj <- "Refine_proj.txt"
 niterations <- 3
 ntimes_iter <- 3
 niterations_total <- ntimes_iter*niterations
-slik0 <- slik_j
+#slik0 <- slik_j
 slik0_proj <- slik_j_proj
 
-out_slik0 <- capture.output(summary(slik0))
+#out_slik0 <- capture.output(summary(slik0))
 # write(cat(out_slik0, file=file_name_slik, sep= "\n"), append=FALSE)
 # write(cat("\n\n", file=file_name_slik, sep= "\n"), append=TRUE)
 
@@ -196,14 +205,14 @@ for (j in 1:ntimes_iter)
 {
   for(i in 1:niterations)
   {
-    slik_j <- refine(slik_j, nb_cores=nbcores)
+    #slik_j <- refine(slik_j, nb_cores=nbcores)
     slik_j_proj <- refine(slik_j_proj, nb_cores=nbcores)
   }
-  name_slik <- paste("slik", j, sep="")
-  name_out <- paste("out", i, sep="")
-  assign(name_slik, slik_j)
-  test_assign <- assign(name_slik, slik_j)
-  test_out <- assign(name_out, capture.output(summary(test_assign)))
+  #name_slik <- paste("slik", j, sep="")
+  #name_out <- paste("out", i, sep="")
+  #assign(name_slik, slik_j)
+  #test_assign <- assign(name_slik, slik_j)
+  #test_out <- assign(name_out, capture.output(summary(test_assign)))
   # write(cat(test_out, file=file_name_slik, sep= "\n"), append=TRUE)
   # write(cat("\n\n", file=file_name_slik, sep= "\n"), append=TRUE)
 
@@ -212,8 +221,8 @@ for (j in 1:ntimes_iter)
   assign(name_slik_proj, slik_j_proj)
   test_assign_proj <- assign(name_slik_proj, slik_j_proj)
   test_out_proj <- assign(name_out_proj, capture.output(summary(test_assign_proj)))
-  # write(cat(test_out_proj, file=file_name_slik_proj, sep= "\n"), append=TRUE)
-  # write(cat("\n\n", file=file_name_slik_proj, sep= "\n"), append=TRUE)
+  write(cat(test_out_proj, file=file_name_slik_proj, sep= "\n"), append=TRUE)
+  write(cat("\n\n", file=file_name_slik_proj, sep= "\n"), append=TRUE)
 }
 
 # tmp <- tempfile(pattern="Ana", tmpdir= ".",fileext=".txt")
@@ -222,18 +231,18 @@ for (j in 1:ntimes_iter)
 # out_slik_proj <- capture.output(summary(slik_j_proj))
 # cat(out_slik_proj, file=tmp, sep="\n", append=TRUE)
 
-fin <- Sys.time()
-duree <- fin - deb
-print(duree)
+fin_10_refine <- Sys.time()
+duree_10_refine <- fin_10_refine - deb2
+print(duree_10_refine)
 
 deb <- gsub(" ", "_", deb)
 
 # write(cat(slik_j$MSL$MSLE,"\n", file=paste(deb,"Resultats.txt", sep="")))
 # write(cat(slik_j$lower,"\n", file=paste(deb,"Resultats.txt", sep="")), append=TRUE)
 # write(cat(slik_j$upper,"\n", file=paste(deb,"Resultats.txt", sep="")), append=TRUE)
-write(c(slik_j$MSL$MSLE,"\n",slik_j$CIobject$CIs$g$interval, "\n", slik_j$CIobject$CIs$m$interval, "\n", slik_j$CIobject$CIs$habitatSize$interval), file="Resultats.txt")
+write(c(slik_j_proj$MSL$MSLE,"\n",slik_j_proj$CIobject$CIs$g$interval, "\n", slik_j_proj$CIobject$CIs$m$interval, "\n", slik_j_proj$CIobject$CIs$habitatSize$interval,"\n", duree_sim,"\n", duree_10_refine), file="Resultats.txt")
 
-save.image(file=paste(gsub(" ", "_", deb),".Rdata", sep=""))
+save.image(file=paste(gsub(" ", "_", deb),"grille=",gr,".Rdata", sep=""))
 
 
 
