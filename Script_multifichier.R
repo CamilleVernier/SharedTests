@@ -23,7 +23,7 @@ for(i in 1:length(args)){
   eval(parse(text=args[[i]]))
 }
 
-name_folder <- paste("Cas_avec_Q_grille=",gr, gsub(" ", "_", Sys.time()), sep="_")
+name_folder <- paste("Cas_avec_Q_grille=300", gsub(" ", "_", Sys.time()), sep="_")
 dir.create(name_folder)
 setwd(dir = name_folder)
 file.copy(c("../IBD_inference_Camille.R", "../IBD_simulation_Camille.R","../IBDSim"), "./")

@@ -43,10 +43,11 @@ if (interactive()) {options(error=recover)} else {
 
 ######################### LIBRARIES ######################### 
 
-# 
-library(Infusion)
-library(caret)
-library(doSNOW)
+.libPaths("/save/cvernier/R/x86_64-pc-linux-gnu-library/3.3")
+loc <- "/save/cvernier/R/x86_64-pc-linux-gnu-library/3.3"
+library(Infusion, lib.loc = loc)
+library(caret, lib.loc = loc)
+library(doSNOW, lib.loc = loc)
 #library(TeachingDemos)
 
 
@@ -65,7 +66,7 @@ for(i in 1:length(args)){
 }
 print(paste(nbcores))
 
-gr <- 300
+gr <- 500
 nR <- 1
 
 latt=c(70,70)
@@ -131,7 +132,7 @@ simtable <- add_reftable(Simulate="IBDSim_wrapper_IBD", nloc=n_loc, par.grid=par
                          nb_cores=c(param=nbcores))
 
 fin_tps_sim <- Sys.time()
-duree_sim <- fin_tps_sim - deb
+duree_sim <-  difftime(fin_tps_sim,deb, units = c("hours"))
 print(duree_sim)
 
 ##################### SANS PROJECTION ##################### 
@@ -182,7 +183,7 @@ slik_j_proj <- MSL(dens_proj)
 plot(slik_j_proj, filled=TRUE)
 #slik_j <- refine(slik_j, maxit=3, nb_cores=c(param=nbcores))
 
-pval <- dchisq(2*(slik_j$MSL$maxlogL-predict(slik_j, newdata=c(g_obs,m_obs,habitatsize_obs))[1]), df=2)
+#pval <- dchisq(2*(slik_j$MSL$maxlogL-predict(slik_j, newdata=c(g_obs,m_obs,habitatsize_obs))[1]), df=2)
 
 ###################################### SAUVEGARDE SLIK ######################################
 #file_name_slik <- "Refine.txt"
@@ -232,17 +233,17 @@ for (j in 1:ntimes_iter)
 # cat(out_slik_proj, file=tmp, sep="\n", append=TRUE)
 
 fin_10_refine <- Sys.time()
-duree_10_refine <- fin_10_refine - deb2
+duree_10_refine <- difftime(fin_10_refine,deb2, units = c("hours"))
 print(duree_10_refine)
 
-deb <- gsub(" ", "_", deb)
+deb_txt <- gsub(" ", "_", deb)
 
 # write(cat(slik_j$MSL$MSLE,"\n", file=paste(deb,"Resultats.txt", sep="")))
 # write(cat(slik_j$lower,"\n", file=paste(deb,"Resultats.txt", sep="")), append=TRUE)
 # write(cat(slik_j$upper,"\n", file=paste(deb,"Resultats.txt", sep="")), append=TRUE)
 write(c(slik_j_proj$MSL$MSLE,"\n",slik_j_proj$CIobject$CIs$g$interval, "\n", slik_j_proj$CIobject$CIs$m$interval, "\n", slik_j_proj$CIobject$CIs$habitatSize$interval,"\n", duree_sim,"\n", duree_10_refine), file="Resultats.txt")
 
-save.image(file=paste(gsub(" ", "_", deb),"grille=",gr,".Rdata", sep=""))
+save.image(file=paste(gsub(" ", "_", deb_txt),"grille=",gr,".Rdata", sep=""))
 
 
 

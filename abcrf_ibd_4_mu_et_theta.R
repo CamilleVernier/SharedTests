@@ -1,9 +1,8 @@
-setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
+## arret à la ligne 224 
 rm(list = ls())
-deb1 <- Sys.time()
-deb <- gsub(" ", "_", deb1)
-N <- 10000
-name_dir_sys <- paste("./",deb,"Nref",N,sep="")
+deb <- Sys.time()
+deb <- gsub(" ", "_", deb)
+name_dir_sys <- paste("./",deb,sep="")
 dir.create(name_dir_sys)
 para = TRUE
 ###########################    IBDSim_wrapper_IBD   ###########################    
@@ -186,6 +185,10 @@ IBDSim_wrapper_IBD <- function(
 theta1_obs <- 0.558615
 theta2_obs <- 0.25
 theta3_obs <- 70
+theta4_obs <- (theta2_obs*(1+theta1_obs))/(1-theta1_obs)^2
+theta4_obs # sigma2
+theta5_obs <- 5*10^-4 # mu
+theta6_obs <- 2*theta3_obs^2*theta5_obs # theta
 
 s_obs <- IBDSim_wrapper_IBD(g=theta1_obs,m=theta2_obs,habitatSize=theta3_obs)
 s_obs <- as.data.frame(t(s_obs))
@@ -194,9 +197,9 @@ s_obs <- as.data.frame(t(s_obs))
 
 ###########################    TABLE REF PARALLELISATION   ###########################    
 
-
+N <- 100
 nb_sum_stats <- length(s_obs)
-theta <- matrix(0,N,3) # matrice des parametres
+theta <- matrix(0,N,6) # matrice des parametres
 s <- matrix(0,N,nb_sum_stats) # matrice des stats résumées
 
 nbcores <-6
@@ -207,12 +210,15 @@ nbcores <-6
 # print(paste(nbcores))
 
 
-#setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
+setwd(dir="/home/vernierc/Documents/GitCamille/SharedTests/")
 for (i in 1:N)
 {
   theta[i,1] <- runif(1)
   theta[i,2] <- runif(1)
   theta[i,3] <- runif(1,16,100)
+  theta[i,4] <- (theta[i,2]*(1+theta[i,1]))/(1-theta[i,1])^2 # sigma
+  theta[i,5] <- runif(1,10^-6,10^-2) # mu
+  theta[i,6] <- 2*(theta[i,3]^2)*theta[i,5] # theta
 }
 
 library(doParallel)
@@ -222,45 +228,50 @@ registerDoParallel(cl)
 
 train <- foreach(i=1:N, .combine="rbind") %dopar% 
 {
-  s[i,] <- IBDSim_wrapper_IBD(g=theta[i,1],m=theta[i,2],habitatSize=theta[i,3])
+  s[i,] <- IBDSim_wrapper_IBD(g=theta[i,1],m=theta[i,2],habitatSize=theta[i,3], mu = theta[i,5])
 }
 stopCluster(cl)    
 
 
 train <- cbind(theta,train)
-colnames(train)[1:3] <- c("g","m","habitatsize")
+colnames(train)[1:6] <- c("g","m","habitatsize","sigma2", "mu", "theta")
 head(train) 
 train <- as.data.frame(train)
-train1 <- train[,-c(2,3)]
-train2 <- train[,-c(1,3)]
-train3 <- train[,-c(1,2)]
+train1 <- train[,-c(2:6)]
+train2 <- train[,-c(1,3:6)]
+train3 <- train[,-c(1:2,4:6)]
+train4 <- train[,-c(1:3,5:6)]
+train5 <- train[,-c(1:4,6)]
+train6 <- train[,-c(1:5)]
+
 
 len <- length(train)
 
-train_without_Q <- train[,-c(16:len)]
-train1_without_Q <- train_without_Q[,-c(2,3)]
-train2_without_Q <- train_without_Q[,-c(1,3)]
-train3_without_Q <- train_without_Q[,-c(1,2)]
+train_without_Q <- train[,-c(17:len)]
+train1_without_Q <- train_without_Q[,-c(2:4)]
+train2_without_Q <- train_without_Q[,-c(1,3:4)]
+train3_without_Q <- train_without_Q[,-c(1:2,4)]
+train4_without_Q <- train_without_Q[,-c(1:3)]
 
-train_without_ar_er <- train[,-c(12:15)]
-train1_without_ar_er <- train_without_ar_er[,-c(2,3)]
-train2_without_ar_er <- train_without_ar_er[,-c(1,3)]
-train3_without_ar_er <- train_without_ar_er[,-c(1,2)]
 
-train_without_ar_er_Q <- train[,-c(12:len)]
-train1_without_ar_er_Q <- train_without_ar_er_Q[,-c(2,3)]
-train2_without_ar_er_Q <- train_without_ar_er_Q[,-c(1,3)]
-train3_without_ar_er_Q <- train_without_ar_er_Q[,-c(1,2)]
+train_without_ar_er <- train[,-c(13:16)]
+train1_without_ar_er <- train_without_ar_er[,-c(2:4)]
+train2_without_ar_er <- train_without_ar_er[,-c(1,3:4)]
+train3_without_ar_er <- train_without_ar_er[,-c(1:2,4)]
+train4_without_ar_er <- train_without_ar_er[,-c(1:3)]
 
-fin_sim_reftable <- Sys.time()
-duree_sim_reftable <- fin_sim_reftable - deb
+train_without_ar_er_Q <- train[,-c(13:len)]
+train1_without_ar_er_Q <- train_without_ar_er_Q[,-c(2:4)]
+train2_without_ar_er_Q <- train_without_ar_er_Q[,-c(1,3:4)]
+train3_without_ar_er_Q <- train_without_ar_er_Q[,-c(1:2,4)]
+train4_without_ar_er_Q <- train_without_ar_er_Q[,-c(1:3)]
+
 
 ###########################    TABLE TEST PARALLELISATION   ###########################    
-deb_test <- Sys.time()
 
 Ntest <- 100
 
-theta.test <- matrix(c(theta1_obs,theta2_obs, theta3_obs),Ntest,3, byrow=TRUE)
+theta.test <- matrix(c(theta1_obs,theta2_obs, theta3_obs, theta4_obs),Ntest,4, byrow=TRUE)
 s.test <- matrix(0,Ntest,nb_sum_stats)
 
 library(doParallel)
@@ -280,10 +291,8 @@ test_without_Q <- test[,-c(13:len_test)]
 test_without_ar_er <- test[,-c(9:12)]
 test_without_ar_er_Q <- test[,-c(9:len_test)]
 
-fin_test <- Sys.time()
-duree_test <- fin_test - deb_test
 ###########################    RANDOM FOREST   ###########################    
-deb_foret <- Sys.time()
+
 library(abcrf)
 
 #### Forêts ####
@@ -306,16 +315,18 @@ model3_without_Q <- regAbcrf(habitatsize~.,data=train3_without_Q,ntree=500, para
 model3_without_ar_er <- regAbcrf(habitatsize~.,data=train3_without_ar_er,ntree=500, paral=para)
 model3_without_ar_er_Q <- regAbcrf(habitatsize~.,data=train3_without_ar_er_Q,ntree=500, paral=para)
 
+# Pour sigma2
+model4 <- regAbcrf(sigma2~.,data=train4,ntree=500, paral=para)
+model4_without_Q <- regAbcrf(sigma2~.,data=train4_without_Q,ntree=500, paral=para)
+model4_without_ar_er <- regAbcrf(sigma2~.,data=train4_without_ar_er,ntree=500, paral=para)
+model4_without_ar_er_Q <- regAbcrf(sigma2~.,data=train4_without_ar_er_Q,ntree=500, paral=para)
 
 plot(model1, main="Estimation du paramètre g")
 plot(model2, main="Estimation du paramètre m")
 plot(model3, main="Estimation du paramètre habitatsize")
-
-fin_foret <- Sys.time()
-duree_foret <- fin_foret - deb_foret
+plot(model4, main="Estimation du paramètre sigma2")
 
 #### Predict ####
-deb_pred <- Sys.time()
 
 pred.theta1 <- predict(model1,test,train1)
 pred.theta1_without_Q <- predict(model1_without_Q,test_without_Q,train1_without_Q)
@@ -332,6 +343,11 @@ pred.theta3_without_Q <- predict(model3_without_Q,test_without_Q,train3_without_
 pred.theta3_without_ar_er <- predict(model3_without_ar_er,test_without_ar_er,train3_without_ar_er)
 pred.theta3_without_ar_er_Q <- predict(model3_without_ar_er_Q,test_without_ar_er_Q,train3_without_ar_er_Q)
 
+pred.theta4 <- predict(model4,test[],train4)
+pred.theta4_without_Q <- predict(model4_without_Q,test_without_Q,train4_without_Q)
+pred.theta4_without_ar_er <- predict(model4_without_ar_er,test_without_ar_er,train4_without_ar_er)
+pred.theta4_without_ar_er_Q <- predict(model4_without_ar_er_Q,test_without_ar_er_Q,train4_without_ar_er_Q)
+
 
 #### Plot Predict ####
 
@@ -344,6 +360,8 @@ abline(a=0,b=1,col="red")
 plot(theta.test[,3],pred.theta3$med)
 abline(a=0,b=1,col="red")
 
+plot(theta.test[,4],pred.theta4$med)
+abline(a=0,b=1,col="red")
 
 #### Plot densités a posteriori ####
 densityPlot(model1,test,train1)
@@ -354,6 +372,9 @@ abline(v=theta2_obs,col="red", lwd=2)
 
 densityPlot(model3,test,train3)
 abline(v=theta3_obs,col="red", lwd=2)
+
+densityPlot(model4,test,train4, xlim=c(0,50000))
+abline(v=theta4_obs,col="red", lwd=2)
 
 
 #### MSE ####
@@ -422,6 +443,32 @@ MSE3_relatif_med_without_ar_er
 MSE3_relatif_med_without_ar_er_Q <- mean((theta.test[,3] - pred.theta3_without_ar_er_Q$med)^2)/theta3_obs^2
 MSE3_relatif_med_without_ar_er_Q
 
+MSE4 <- mean((theta.test[,4] - pred.theta4$expectation)^2)
+MSE4 
+MSE4_without_Q <- mean((theta.test[,4] - pred.theta4_without_Q$expectation)^2)
+MSE4_without_Q
+MSE4_without_ar_er <- mean((theta.test[,4] - pred.theta4_without_ar_er$expectation)^2)
+MSE4_without_ar_er
+MSE4_without_ar_er_Q <- mean((theta.test[,4] - pred.theta4_without_ar_er_Q$expectation)^2)
+MSE4_without_ar_er_Q
+
+MSE4_med <- mean((theta.test[,4] - pred.theta4$med)^2)
+MSE4_med 
+MSE4_med_without_Q <- mean((theta.test[,4] - pred.theta4_without_Q$med)^2)
+MSE4_med_without_Q
+MSE4_med_without_ar_er <- mean((theta.test[,4] - pred.theta4_without_ar_er$med)^2)
+MSE4_med_without_ar_er
+MSE4_med_without_ar_er_Q <- mean((theta.test[,4] - pred.theta4_without_ar_er_Q$med)^2)
+MSE4_med_without_ar_er_Q
+
+MSE4_med_relatif <- mean((theta.test[,4] - pred.theta4$med)^2)/theta4_obs^2
+MSE4_med_relatif 
+MSE4_med_relatif_without_Q <- mean((theta.test[,4] - pred.theta4_without_Q$med)^2)/theta4_obs^2
+MSE4_med_relatif_without_Q
+MSE4_med_relatif_without_ar_er <- mean((theta.test[,4] - pred.theta4_without_ar_er$med)^2)/theta4_obs^2
+MSE4_med_relatif_without_ar_er
+MSE4_med_relatif_without_ar_er_Q <- mean((theta.test[,4] - pred.theta4_without_ar_er_Q$med)^2)/theta4_obs^2
+MSE4_med_relatif_without_ar_er_Q
 
 ########################    Biais    ########################
 ### attention changement: biais relatif
@@ -458,11 +505,6 @@ biais2_med_without_Q <- mean(pred.theta2_without_Q$med) - theta2_obs
 biais2_med_without_ar_er <- mean(pred.theta2_without_ar_er$med) - theta2_obs
 biais2_med_without_ar_er_Q <- mean(pred.theta2_without_ar_er_Q$med) - theta2_obs
 
-biais2_relatif <- (mean(pred.theta2$expectation) - theta2_obs)/theta2_obs
-biais2_relatif_without_Q <- (mean(pred.theta2_without_Q$expectation) - theta2_obs)/theta2_obs
-biais2_relatif_without_ar_er <- (mean(pred.theta2_without_ar_er$expectation) - theta2_obs)/theta2_obs
-biais2_relatif_without_ar_er_Q <- (mean(pred.theta2_without_ar_er_Q$expectation) - theta2_obs)/theta2_obs
-
 
 biais3 <- mean(pred.theta3$expectation) - theta3_obs
 biais3_without_Q <- mean(pred.theta3_without_Q$expectation) - theta3_obs
@@ -474,10 +516,16 @@ biais3_med_without_Q <- mean(pred.theta3_without_Q$med) - theta3_obs
 biais3_med_without_ar_er <- mean(pred.theta3_without_ar_er$med) - theta3_obs
 biais3_med_without_ar_er_Q <- mean(pred.theta3_without_ar_er_Q$med) - theta3_obs
 
-biais3_relatif <- (mean(pred.theta3$expectation) - theta3_obs)/theta3_obs
-biais3_relatif_without_Q <- (mean(pred.theta3_without_Q$expectation) - theta3_obs)/theta3_obs
-biais3_relatif_without_ar_er <- (mean(pred.theta3_without_ar_er$expectation) - theta3_obs)/theta3_obs
-biais3_relatif_without_ar_er_Q <- (mean(pred.theta3_without_ar_er_Q$expectation) - theta3_obs)/theta3_obs
+biais4 <- mean(pred.theta4$expectation) - theta4_obs
+biais4_without_Q <- mean(pred.theta4_without_Q$expectation) - theta4_obs
+biais4_without_ar_er <- mean(pred.theta4_without_ar_er$expectation) - theta4_obs
+biais4_without_ar_er_Q <- mean(pred.theta4_without_ar_er_Q$expectation) - theta4_obs
+
+biais4_med <- mean(pred.theta4$med) - theta4_obs
+biais4_med_without_Q <- mean(pred.theta4_without_Q$med) - theta4_obs
+biais4_med_without_ar_er <- mean(pred.theta4_without_ar_er$med) - theta4_obs
+biais4_med_without_ar_er_Q <- mean(pred.theta4_without_ar_er_Q$med) - theta4_obs
+
 ########################    NMAE    ########################
 
 NMAE1 <- mean(abs((theta1_obs-pred.theta1$expectation)/theta1_obs))
@@ -507,20 +555,22 @@ NMAE3_med_without_ar_er <- mean(abs((theta3_obs-pred.theta3_without_ar_er$med)/t
 NMAE3_without_ar_er_Q <- mean(abs((theta3_obs-pred.theta3_without_ar_er_Q$expectation)/theta3_obs))
 NMAE3_med_without_ar_er_Q <- mean(abs((theta3_obs-pred.theta3_without_ar_er_Q$med)/theta3_obs))
 
-fin_inter <- Sys.time()
-
-########################    COVERAGE    ########################
-sum(pred.theta1$quantiles[,1] <= theta1_obs & theta1_obs <= pred.theta1$quantiles[,2])
-sum(pred.theta2$quantiles[,1] <= theta2_obs & theta2_obs <= pred.theta2$quantiles[,2])
-sum(pred.theta3$quantiles[,1] <= theta3_obs & theta3_obs <= pred.theta3$quantiles[,2])
+NMAE4 <- mean(abs((theta4_obs-pred.theta4$expectation)/theta4_obs))
+NMAE4_med <- mean(abs((theta4_obs-pred.theta4$med)/theta4_obs))
+NMAE4_without_Q <- mean(abs((theta4_obs-pred.theta4_without_Q$expectation)/theta4_obs))
+NMAE4_med_without_Q <- mean(abs((theta4_obs-pred.theta4_without_Q$med)/theta4_obs))
+NMAE4_without_ar_er <- mean(abs((theta4_obs-pred.theta4_without_ar_er$expectation)/theta4_obs))
+NMAE4_med_without_ar_er <- mean(abs((theta4_obs-pred.theta4_without_ar_er$med)/theta4_obs))
+NMAE4_without_ar_er_Q <- mean(abs((theta4_obs-pred.theta4_without_ar_er_Q$expectation)/theta4_obs))
+NMAE4_med_without_ar_er_Q <- mean(abs((theta4_obs-pred.theta4_without_ar_er_Q$med)/theta4_obs))
 
 
 ########################    PREDICT OOB    ########################
 
-oob1 <- predictOOB(model1, train1, paral=para, ncores=6)
-oob1_without_Q <- predictOOB(model1_without_Q, train1_without_Q, paral=para,ncores=6)
-oob1_without_ar_er <- predictOOB(model1_without_ar_er, train1_without_ar_er, paral = para,ncores=6)
-oob1_without_ar_er_Q <- predictOOB(model1_without_ar_er_Q, train1_without_ar_er_Q, paral=para,ncores=6)
+oob1 <- predictOOB(model1, train1)
+oob1_without_Q <- predictOOB(model1_without_Q, train1_without_Q, paral=FALSE)
+oob1_without_ar_er <- predictOOB(model1_without_ar_er, train1_without_ar_er, paral = FALSE)
+oob1_without_ar_er_Q <- predictOOB(model1_without_ar_er_Q, train1_without_ar_er_Q, paral=FALSE)
 
 OOB_results1 <- matrix(c(oob1$MSE,oob1_without_Q$MSE, oob1_without_ar_er$MSE, oob1_without_ar_er_Q$MSE,
                          oob1$NMAE,oob1_without_Q$NMAE, oob1_without_ar_er$NMAE, oob1_without_ar_er_Q$NMAE,
@@ -529,19 +579,11 @@ OOB_results1 <- matrix(c(oob1$MSE,oob1_without_Q$MSE, oob1_without_ar_er$MSE, oo
 colnames(OOB_results1) <- c("All","Without Qij", "Without ar,er", "Without ar,er,Qij")
 rownames(OOB_results1) <- c("MSE", "NMAE", "med MSE", "med NMAE")
 
-# intervale à 90
-oob1_90 <- predictOOB(model1, train1, paral=para, ncores=6, quantiles = c(0.05, 0.95))
-oob1_80 <- predictOOB(model1, train1, paral=para, ncores=6, quantiles = c(0.2, 0.80))
-# oob1_90_without_Q <- predictOOB(model1_without_Q, train1_without_Q, paral=para,ncores=6,quantiles = c(0.05, 0.95))
-# oob1_90_without_ar_er <- predictOOB(model1_without_ar_er, train1_without_ar_er, paral = para,ncores=6,quantiles = c(0.05, 0.95))
-# oob1_90_without_ar_er_Q <- predictOOB(model1_without_ar_er_Q, train1_without_ar_er_Q, paral=para,ncores=6,quantiles = c(0.05, 0.95))
-# 
 
-
-oob2 <- predictOOB(model2, train2, paral = para, ncores=6)
-oob2_without_Q <- predictOOB(model2_without_Q, train2_without_Q, paral=para, ncores=6)
-oob2_without_ar_er <- predictOOB(model2_without_ar_er, train2_without_ar_er, paral = para, ncores=6)
-oob2_without_ar_er_Q <- predictOOB(model2_without_ar_er_Q, train2_without_ar_er_Q, paral=para, ncores=6)
+oob2 <- predictOOB(model2, train2, paral = FALSE)
+oob2_without_Q <- predictOOB(model2_without_Q, train2_without_Q, paral=FALSE)
+oob2_without_ar_er <- predictOOB(model2_without_ar_er, train2_without_ar_er, paral = FALSE)
+oob2_without_ar_er_Q <- predictOOB(model2_without_ar_er_Q, train2_without_ar_er_Q, paral=FALSE)
 
 OOB_results2 <- matrix(c(oob2$MSE,oob2_without_Q$MSE, oob2_without_ar_er$MSE, oob2_without_ar_er_Q$MSE,
                          oob2$NMAE,oob2_without_Q$NMAE, oob2_without_ar_er$NMAE, oob2_without_ar_er_Q$NMAE,
@@ -549,19 +591,13 @@ OOB_results2 <- matrix(c(oob2$MSE,oob2_without_Q$MSE, oob2_without_ar_er$MSE, oo
                          oob2$med_NMAE,oob2_without_Q$med_NMAE, oob2_without_ar_er$med_NMAE, oob2_without_ar_er_Q$med_NMAE),4,4, byrow=FALSE)
 colnames(OOB_results2) <- c("All","Without Qij", "Without ar,er", "Without ar,er,Qij")
 rownames(OOB_results2) <- c("MSE", "NMAE", "med MSE", "med NMAE")
-# 
-# oob2_90 <- predictOOB(model2, train2, paral=para, ncores=6, quantiles = c(0.05, 0.95))
-# oob2_80 <- predictOOB(model2, train2, paral=para, ncores=6, quantiles = c(0.1, 0.90))
-# oob2_90_without_Q <- predictOOB(model2_without_Q, train2_without_Q, paral=para,ncores=6,quantiles = c(0.05, 0.95))
-# oob2_90_without_ar_er <- predictOOB(model2_without_ar_er, train2_without_ar_er, paral = para,ncores=6,quantiles = c(0.05, 0.95))
-# oob2_90_without_ar_er_Q <- predictOOB(model2_without_ar_er_Q, train2_without_ar_er_Q, paral=para,ncores=6,quantiles = c(0.05, 0.95))
 
-oob3_t <- predictOOB(model3, train3, paral = para, ncores=6, quantiles = c(0.0005,0.9995))
 
-oob3 <- predictOOB(model3, train3, paral = para, ncores=6)
-oob3_without_Q <- predictOOB(model3_without_Q, train3_without_Q, paral=para, ncores=6)
-oob3_without_ar_er <- predictOOB(model3_without_ar_er, train3_without_ar_er, paral = para, ncores=6)
-oob3_without_ar_er_Q <- predictOOB(model3_without_ar_er_Q, train3_without_ar_er_Q, paral=para, ncores=6)
+
+oob3 <- predictOOB(model3, train3, paral = FALSE)
+oob3_without_Q <- predictOOB(model3_without_Q, train3_without_Q, paral=FALSE)
+oob3_without_ar_er <- predictOOB(model3_without_ar_er, train3_without_ar_er, paral = FALSE)
+oob3_without_ar_er_Q <- predictOOB(model3_without_ar_er_Q, train3_without_ar_er_Q, paral=FALSE)
 
 OOB_results3 <- matrix(c(oob3$MSE,oob3_without_Q$MSE, oob3_without_ar_er$MSE, oob3_without_ar_er_Q$MSE,
                          oob3$NMAE,oob3_without_Q$NMAE, oob3_without_ar_er$NMAE, oob3_without_ar_er_Q$NMAE,
@@ -569,13 +605,8 @@ OOB_results3 <- matrix(c(oob3$MSE,oob3_without_Q$MSE, oob3_without_ar_er$MSE, oo
                          oob3$med_NMAE,oob3_without_Q$med_NMAE, oob3_without_ar_er$med_NMAE, oob3_without_ar_er_Q$med_NMAE),4,4, byrow=FALSE)
 colnames(OOB_results3) <- c("All","Without Qij", "Without ar,er", "Without ar,er,Qij")
 rownames(OOB_results3) <- c("OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
-# 
-# oob3_90 <- predictOOB(model3, train3, paral=para, ncores=6, quantiles = c(0.05, 0.95))
-# oob3_80 <- predictOOB(model3, train3, paral=para, ncores=6, quantiles = c(0.1, 0.90))
-# oob3_90_without_Q <- predictOOB(model3_without_Q, train3_without_Q, paral=para,ncores=6,quantiles = c(0.05, 0.95))
-# oob3_90_without_ar_er <- predictOOB(model3_without_ar_er, train3_without_ar_er, paral = para,ncores=6,quantiles = c(0.05, 0.95))
-# oob3_90_without_ar_er_Q <- predictOOB(model3_without_ar_er_Q, train3_without_ar_er_Q, paral=para,ncores=6,quantiles = c(0.05, 0.95))
-# 
+
+
 
 # densityPlot(model1,test[1:100,],train1)
 densityPlot(model1,test[10,],train1)
@@ -589,10 +620,11 @@ par(mfrow=c(2, 2))
 plot(model1, main="Estimation du paramètre g")
 plot(model2, main="Estimation du paramètre m")
 plot(model3, main="Estimation du paramètre habitatsize")
+plot(model4, main="Estimation du paramètre sigma2")
 par(mfrow=c(1, 1))
 par(op)
 
-pause <- Sys.time()
+
 #########################   RESULTS   ######################### 
 
 results1 <- rbind(c(mean(pred.theta1$expectation), mean(pred.theta1_without_Q$expectation), mean(pred.theta1_without_ar_er$expectation), mean(pred.theta1_without_ar_er_Q$expectation)),
@@ -603,56 +635,47 @@ results1 <- rbind(c(mean(pred.theta1$expectation), mean(pred.theta1_without_Q$ex
                   c(MSE1, MSE1_without_Q, MSE1_without_ar_er,MSE1_without_ar_er_Q),
                   c(MSE1_med, MSE1_med_without_Q, MSE1_med_without_ar_er,MSE1_med_without_ar_er_Q),                  
                   c(NMAE1, NMAE1_without_Q, NMAE1_without_ar_er,NMAE1_without_ar_er_Q),
-                  c(NMAE1_med, NMAE1_med_without_Q, NMAE1_med_without_ar_er,NMAE1_med_without_ar_er_Q),
-                  c(model1$model.rf$prediction.error, model1_without_Q$model.rf$prediction.error, model1_without_ar_er$model.rf$prediction.error, model1_without_ar_er_Q$model.rf$prediction.error),
-                  c(oob1$coverage, oob1_without_Q$coverage, oob1_without_ar_er$coverage, oob1_without_ar_er_Q$coverage))
+                  c(NMAE1_med, NMAE1_med_without_Q, NMAE1_med_without_ar_er,NMAE1_med_without_ar_er_Q))
 #OOB_results1)
-rownames(results1) <- c("Valeur moyenne", "Valeur médiane","Biais", "Biais relatif","Variance", "MSE", "MSE med","NMAE", "NMAE med", "OOB MSE", "Couverture IC")
+rownames(results1) <- c("Valeur moyenne", "Valeur médiane","Biais", "Biais relatif","Variance", "MSE", "MSE med","NMAE", "NMAE med")
 #, "OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
-colnames(results1) <- c("All","Without Qij", "Without ar,er", "Without ar,er,Qij")
 
 results2 <- rbind(c(mean(pred.theta2$expectation), mean(pred.theta2_without_Q$expectation), mean(pred.theta2_without_ar_er$expectation), mean(pred.theta2_without_ar_er_Q$expectation)),
-                  c(mean(pred.theta2$med), mean(pred.theta2_without_Q$med), mean(pred.theta2_without_ar_er$med), mean(pred.theta2_without_ar_er_Q$med)),
                   c(biais2, biais2_without_Q, biais2_without_ar_er, biais2_without_ar_er_Q),
-                  c(biais2_relatif, biais2_relatif_without_Q, biais2_relatif_without_ar_er, biais2_relatif_without_ar_er_Q),
                   c(var(pred.theta2$expectation), var(pred.theta2_without_Q$expectation), var(pred.theta2_without_ar_er$expectation), var(pred.theta2_without_ar_er_Q$expectation)),
                   c(MSE2, MSE2_without_Q, MSE2_without_ar_er,MSE2_without_ar_er_Q),
-                  c(MSE2_med, MSE2_med_without_Q, MSE2_med_without_ar_er,MSE2_med_without_ar_er_Q),                  
                   c(NMAE2, NMAE2_without_Q, NMAE2_without_ar_er,NMAE2_without_ar_er_Q),
-                  c(NMAE2_med, NMAE2_med_without_Q, NMAE2_med_without_ar_er,NMAE2_med_without_ar_er_Q),
-                  c(model2$model.rf$prediction.error, model2_without_Q$model.rf$prediction.error, model2_without_ar_er$model.rf$prediction.error, model2_without_ar_er_Q$model.rf$prediction.error),
-                  c(oob2$coverage, oob2_without_Q$coverage, oob2_without_ar_er$coverage, oob2_without_ar_er_Q$coverage))
-#OOB_results1)
-rownames(results2) <- c("Valeur moyenne", "Valeur médiane","Biais", "Biais relatif","Variance", "MSE", "MSE med","NMAE", "NMAE med", "OOB MSE", "Couverture IC")
-#, "OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
-colnames(results2) <- c("All","Without Qij", "Without ar,er", "Without ar,er,Qij")
+                  OOB_results2)
+rownames(results2) <- c("Valeur moyenne","biais", "Variance","MSE", "NMAE","OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
 
 
 results3 <- rbind(c(mean(pred.theta3$expectation), mean(pred.theta3_without_Q$expectation), mean(pred.theta3_without_ar_er$expectation), mean(pred.theta3_without_ar_er_Q$expectation)),
-                  c(mean(pred.theta3$med), mean(pred.theta3_without_Q$med), mean(pred.theta3_without_ar_er$med), mean(pred.theta3_without_ar_er_Q$med)),
                   c(biais3, biais3_without_Q, biais3_without_ar_er, biais3_without_ar_er_Q),
-                  c(biais3_relatif, biais3_relatif_without_Q, biais3_relatif_without_ar_er, biais3_relatif_without_ar_er_Q),
                   c(var(pred.theta3$expectation), var(pred.theta3_without_Q$expectation), var(pred.theta3_without_ar_er$expectation), var(pred.theta3_without_ar_er_Q$expectation)),
                   c(MSE3, MSE3_without_Q, MSE3_without_ar_er,MSE3_without_ar_er_Q),
-                  c(MSE3_med, MSE3_med_without_Q, MSE3_med_without_ar_er,MSE3_med_without_ar_er_Q),                  
                   c(NMAE3, NMAE3_without_Q, NMAE3_without_ar_er,NMAE3_without_ar_er_Q),
-                  c(NMAE3_med, NMAE3_med_without_Q, NMAE3_med_without_ar_er,NMAE3_med_without_ar_er_Q),
-                  c(model3$model.rf$prediction.error, model3_without_Q$model.rf$prediction.error, model3_without_ar_er$model.rf$prediction.error, model3_without_ar_er_Q$model.rf$prediction.error),
-                  c(oob3$coverage, oob3_without_Q$coverage, oob3_without_ar_er$coverage, oob3_without_ar_er_Q$coverage))
-#OOB_results1)
-rownames(results3) <- c("Valeur moyenne", "Valeur médiane","Biais", "Biais relatif","Variance", "MSE", "MSE med","NMAE", "NMAE med", "OOB MSE", "Couverture IC")
-#, "OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
-colnames(results3) <- c("All","Without Qij", "Without ar,er", "Without ar,er,Qij")
+                  OOB_results3)
+rownames(results3) <- c("Valeur moyenne","biais", "Variance","MSE", "NMAE","OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
+
+results4 <- rbind(c(mean(pred.theta4$expectation), mean(pred.theta4_without_Q$expectation), mean(pred.theta4_without_ar_er$expectation), mean(pred.theta4_without_ar_er_Q$expectation)),
+                  c(mean(pred.theta4$med), mean(pred.theta4_without_Q$med), mean(pred.theta4_without_ar_er$med), mean(pred.theta4_without_ar_er_Q$med)),
+                  c(biais4, biais4_without_Q, biais4_without_ar_er, biais4_without_ar_er_Q),
+                  c(var(pred.theta4$expectation), var(pred.theta4_without_Q$expectation), var(pred.theta4_without_ar_er$expectation), var(pred.theta4_without_ar_er_Q$expectation)),
+                  c(MSE4, MSE4_without_Q, MSE4_without_ar_er,MSE4_without_ar_er_Q),                  
+                  c(NMAE4, NMAE4_without_Q, NMAE4_without_ar_er,NMAE4_without_ar_er_Q),
+                  OOB_results4)
+rownames(results4) <- c("Valeur moyenne","Valeur médiane","Biais","Variance", "MSE","NMAE", "OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
+
 
 ######################  Sauvegardes Rdata  ###################### 
-dir_name_1 <- paste("./Abcrf_sauvegardes_analyses_et_Rdata/", gsub(" ", "_", deb),sep="")
-#dir_cr<- dir.create(dir_name_1)
-write.csv(results1, file=paste(dir_name_1,N,"abcrf_Results1_100_meme_para_gmh.csv", sep=""))
-write.csv(results2, file=paste(dir_name_1,N,"abcrf_Results2_100_meme_para_gmh.csv", sep=""))
-write.csv(results3, file=paste(dir_name_1,N,"abcrf_Results3_100_meme_para_gmh.csv", sep=""))
+dir_name_1 <- paste(gsub(" ", "_", deb),sep="")
+dir_cr<- dir.create(dir_name_1)
+write.csv(results1, file=paste(dir_name_1,"/Results1_100_meme_para_gmh.csv", sep=""))
+write.csv(results2, file=paste(dir_name_1,"/Results2_100_meme_para_gmh.csv", sep=""))
+write.csv(results3, file=paste(dir_name_1,"/Results3_100_meme_para_gmh.csv", sep=""))
 
-save.image(file=paste(dir_name_1,"_",N,"_abcrf.Rdata", sep=""))
-fin_inter - deb1
+save.image(file=paste("Rdata/",dir_name_1,".Rdata", sep=""))
+
 
 # write.csv(results1, file=paste("/home/vernierc/Documents/Logiciels/ABCRF/",gsub(" ", "_", deb),"Results1_100_meme_para_gmh.csv", sep=""))
 # write.csv(results2, file=paste("/home/vernierc/Documents/Logiciels/ABCRF/",gsub(" ", "_", deb),"Results2_100_meme_para_gmh.csv", sep=""))

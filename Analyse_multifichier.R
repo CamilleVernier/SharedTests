@@ -1,5 +1,5 @@
 ##################  VERIFICATION DES FICHIERS ET RECUPERATION DES RESULTATS  ##################  
-setwd(dir = "./Cas_avec_Q_2018-08-08_16:32:07")
+setwd(dir = "./Cas_avec_Q_grille=300_2018-08-09_16:49:21")
 bug_simu <- 0
 g_obs <- 0.558615
 m_obs <- 0.25
@@ -25,6 +25,7 @@ for (i in 1:100)
       bug_simu <- bug_simu + 1
     }
   }
+
   ##################    ANALYSE  ##################
   res <- read.table("Resultats.txt", sep=" ")
   res_tab <- rbind(res_tab, res[1:3,])
@@ -100,6 +101,10 @@ for (i in 2:101)
   {
     ci_tab_m[i,2] <- 1
   }
+  if(is.na(ci_tab_h[i,2]==TRUE))
+  {
+    ci_tab_h[i,2] <- 200
+  }
 }
 
 cover_ci_g <- sum(as.numeric(ci_tab_g[2:101,1])<=g_obs & as.numeric(ci_tab_g[2:101,2])>=g_obs)
@@ -117,11 +122,13 @@ colnames(tableau) <- c("g","m","h")
 rownames(tableau) <- c("mean", "mediane","biais", "biais_relatif", "MSE", "MSE_relatif", "nb_NA_ci",
                        "nb_NA_ci_low", "nb_NA_ci_up", "cover_ci")
 
-write.table(tableau,"Resume_final.txt")
+write.table(tableau,paste(gsub(" ", "_", deb),"Resume_final.txt", sep="_"))
 
 temps_sim_mean <- mean(as.numeric(temps_tab_sim[2:101,1]))
 temps_refine_mean <- mean(as.numeric(temps_tab_sim[2:101,2]))
 temps_mean <- mean(as.numeric(temps_tab_sim[2:101,3]))
+
+write.table(c(temps_sim_mean, temps_refine_mean, temps_mean),paste(gsub(" ", "_", deb),"Temps.txt", sep="_"))
 
 
 save.image(file=paste(gsub(" ", "_", deb),".Rdata", sep=""))
