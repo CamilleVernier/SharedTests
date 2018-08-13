@@ -1,5 +1,5 @@
 
-setwd(dir = "./Cas_avec_Q_2018-08-08_18:51:28")
+setwd(dir = "./Cas_avec_Q_grille=500_2018-08-10_10:39:52")
 bug_simu <- 0
 
 args = commandArgs(trailingOnly=TRUE)
@@ -31,4 +31,6 @@ for (i in 1:100)
   setwd("../")
 }
 
+print(bug_simu)
+print(Sys.time())
 

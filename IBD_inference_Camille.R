@@ -66,7 +66,7 @@ for(i in 1:length(args)){
 }
 print(paste(nbcores))
 
-gr <- 500
+gr <- 100
 nR <- 1
 
 latt=c(70,70)
@@ -237,6 +237,16 @@ duree_10_refine <- difftime(fin_10_refine,deb2, units = c("hours"))
 print(duree_10_refine)
 
 deb_txt <- gsub(" ", "_", deb)
+
+
+############### CONFINT 90 ############### 
+confint1_90 <- confint(slik_j_proj,"g",level=0.9)
+confint2_90 <- confint(slik_j_proj,"m",level=0.9)
+confint3_90 <- confint(slik_j_proj,"habitatsize",level=0.9)
+
+confint1_80 <- confint(slik_j_proj,"g",level=0.8)
+confint2_80 <- confint(slik_j_proj,"m",level=0.8)
+confint3_80 <- confint(slik_j_proj,"habitatsize",level=0.8)
 
 # write(cat(slik_j$MSL$MSLE,"\n", file=paste(deb,"Resultats.txt", sep="")))
 # write(cat(slik_j$lower,"\n", file=paste(deb,"Resultats.txt", sep="")), append=TRUE)

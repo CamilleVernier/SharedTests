@@ -514,7 +514,22 @@ sum(pred.theta1$quantiles[,1] <= theta1_obs & theta1_obs <= pred.theta1$quantile
 sum(pred.theta2$quantiles[,1] <= theta2_obs & theta2_obs <= pred.theta2$quantiles[,2])
 sum(pred.theta3$quantiles[,1] <= theta3_obs & theta3_obs <= pred.theta3$quantiles[,2])
 
+pred.theta1_90 <- predict(model1,test,train1, quantiles = c(0.05, 0.95))
+pred.theta2_90 <- predict(model2,test,train2, quantiles = c(0.05, 0.95))
+pred.theta3_90 <- predict(model3,test,train3, quantiles = c(0.05, 0.95))
 
+sum(pred.theta1_90$quantiles[,1] <= theta1_obs & theta1_obs <= pred.theta1_90$quantiles[,2])
+sum(pred.theta2_90$quantiles[,1] <= theta2_obs & theta2_obs <= pred.theta2_90$quantiles[,2])
+sum(pred.theta3_90$quantiles[,1] <= theta3_obs & theta3_obs <= pred.theta3_90$quantiles[,2])
+
+
+pred.theta1_80 <- predict(model1,test,train1, quantiles = c(0.10, 0.90))
+pred.theta2_80 <- predict(model2,test,train2, quantiles = c(0.10, 0.90))
+pred.theta3_80 <- predict(model3,test,train3, quantiles = c(0.10, 0.90))
+
+sum(pred.theta1_80$quantiles[,1] <= theta1_obs & theta1_obs <= pred.theta1_80$quantiles[,2])
+sum(pred.theta2_80$quantiles[,1] <= theta2_obs & theta2_obs <= pred.theta2_80$quantiles[,2])
+sum(pred.theta3_80$quantiles[,1] <= theta3_obs & theta3_obs <= pred.theta3_80$quantiles[,2])
 ########################    PREDICT OOB    ########################
 
 oob1 <- predictOOB(model1, train1, paral=para, ncores=6)
@@ -604,10 +619,11 @@ results1 <- rbind(c(mean(pred.theta1$expectation), mean(pred.theta1_without_Q$ex
                   c(MSE1_med, MSE1_med_without_Q, MSE1_med_without_ar_er,MSE1_med_without_ar_er_Q),                  
                   c(NMAE1, NMAE1_without_Q, NMAE1_without_ar_er,NMAE1_without_ar_er_Q),
                   c(NMAE1_med, NMAE1_med_without_Q, NMAE1_med_without_ar_er,NMAE1_med_without_ar_er_Q),
-                  c(model1$model.rf$prediction.error, model1_without_Q$model.rf$prediction.error, model1_without_ar_er$model.rf$prediction.error, model1_without_ar_er_Q$model.rf$prediction.error),
-                  c(oob1$coverage, oob1_without_Q$coverage, oob1_without_ar_er$coverage, oob1_without_ar_er_Q$coverage))
+                  c(model1$model.rf$prediction.error, model1_without_Q$model.rf$prediction.error, model1_without_ar_er$model.rf$prediction.error, model1_without_ar_er_Q$model.rf$prediction.error))
+                  #c(oob1$coverage, oob1_without_Q$coverage, oob1_without_ar_er$coverage, oob1_without_ar_er_Q$coverage))
 #OOB_results1)
-rownames(results1) <- c("Valeur moyenne", "Valeur médiane","Biais", "Biais relatif","Variance", "MSE", "MSE med","NMAE", "NMAE med", "OOB MSE", "Couverture IC")
+rownames(results1) <- c("Valeur moyenne", "Valeur médiane","Biais", "Biais relatif","Variance", "MSE", "MSE med","NMAE", "NMAE med", "OOB MSE")
+                        #, "Couverture IC")
 #, "OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
 colnames(results1) <- c("All","Without Qij", "Without ar,er", "Without ar,er,Qij")
 
@@ -620,10 +636,10 @@ results2 <- rbind(c(mean(pred.theta2$expectation), mean(pred.theta2_without_Q$ex
                   c(MSE2_med, MSE2_med_without_Q, MSE2_med_without_ar_er,MSE2_med_without_ar_er_Q),                  
                   c(NMAE2, NMAE2_without_Q, NMAE2_without_ar_er,NMAE2_without_ar_er_Q),
                   c(NMAE2_med, NMAE2_med_without_Q, NMAE2_med_without_ar_er,NMAE2_med_without_ar_er_Q),
-                  c(model2$model.rf$prediction.error, model2_without_Q$model.rf$prediction.error, model2_without_ar_er$model.rf$prediction.error, model2_without_ar_er_Q$model.rf$prediction.error),
-                  c(oob2$coverage, oob2_without_Q$coverage, oob2_without_ar_er$coverage, oob2_without_ar_er_Q$coverage))
+                  c(model2$model.rf$prediction.error, model2_without_Q$model.rf$prediction.error, model2_without_ar_er$model.rf$prediction.error, model2_without_ar_er_Q$model.rf$prediction.error))
+                  #c(oob2$coverage, oob2_without_Q$coverage, oob2_without_ar_er$coverage, oob2_without_ar_er_Q$coverage))
 #OOB_results1)
-rownames(results2) <- c("Valeur moyenne", "Valeur médiane","Biais", "Biais relatif","Variance", "MSE", "MSE med","NMAE", "NMAE med", "OOB MSE", "Couverture IC")
+rownames(results2) <- c("Valeur moyenne", "Valeur médiane","Biais", "Biais relatif","Variance", "MSE", "MSE med","NMAE", "NMAE med", "OOB MSE") #, "Couverture IC")
 #, "OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
 colnames(results2) <- c("All","Without Qij", "Without ar,er", "Without ar,er,Qij")
 
@@ -637,10 +653,10 @@ results3 <- rbind(c(mean(pred.theta3$expectation), mean(pred.theta3_without_Q$ex
                   c(MSE3_med, MSE3_med_without_Q, MSE3_med_without_ar_er,MSE3_med_without_ar_er_Q),                  
                   c(NMAE3, NMAE3_without_Q, NMAE3_without_ar_er,NMAE3_without_ar_er_Q),
                   c(NMAE3_med, NMAE3_med_without_Q, NMAE3_med_without_ar_er,NMAE3_med_without_ar_er_Q),
-                  c(model3$model.rf$prediction.error, model3_without_Q$model.rf$prediction.error, model3_without_ar_er$model.rf$prediction.error, model3_without_ar_er_Q$model.rf$prediction.error),
-                  c(oob3$coverage, oob3_without_Q$coverage, oob3_without_ar_er$coverage, oob3_without_ar_er_Q$coverage))
+                  c(model3$model.rf$prediction.error, model3_without_Q$model.rf$prediction.error, model3_without_ar_er$model.rf$prediction.error, model3_without_ar_er_Q$model.rf$prediction.error))
+                  #c(oob3$coverage, oob3_without_Q$coverage, oob3_without_ar_er$coverage, oob3_without_ar_er_Q$coverage))
 #OOB_results1)
-rownames(results3) <- c("Valeur moyenne", "Valeur médiane","Biais", "Biais relatif","Variance", "MSE", "MSE med","NMAE", "NMAE med", "OOB MSE", "Couverture IC")
+rownames(results3) <- c("Valeur moyenne", "Valeur médiane","Biais", "Biais relatif","Variance", "MSE", "MSE med","NMAE", "NMAE med", "OOB MSE") #, "Couverture IC")
 #, "OOB MSE", "OOB NMAE", "OOB med MSE", "OOB med NMAE")
 colnames(results3) <- c("All","Without Qij", "Without ar,er", "Without ar,er,Qij")
 
